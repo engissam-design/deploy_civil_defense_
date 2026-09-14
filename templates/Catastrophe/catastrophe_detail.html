@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>تفاصيل المبنى</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- Bootstrap -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css">
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+
+    <style>
+        body {
+            background-color: #f5f7fa;
+            font-family: 'Cairo', sans-serif;
+            direction: rtl;
+            text-align: right;
+        }
+
+        .container {
+            max-width: 900px;
+            margin-top: 40px;
+            background-color: #ffffff;
+            padding: 30px 40px;
+            border-radius: 12px;
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
+        }
+
+        h2 {
+            font-weight: bold;
+            color: #007bff;
+            margin-bottom: 30px;
+        }
+
+        .table th, .table td {
+            vertical-align: middle;
+            font-size: 16px;
+            padding: 12px;
+        }
+
+        .table th {
+            background-color: #e9f0ff;
+            color: #333;
+        }
+
+        .form-group label {
+            font-weight: bold;
+        }
+
+        .form-control {
+            border-radius: 10px;
+            direction: rtl;
+            text-align: right;
+        }
+
+        .btn-success {
+            font-size: 17px;
+            padding: 10px 25px;
+            border-radius: 8px;
+        }
+
+        #map {
+            width: 100%;
+            height: 400px;
+            border: 1px solid #ced4da;
+            border-radius: 10px;
+            margin-bottom: 30px;
+        }
+
+        .text-small {
+            font-size: 14px;
+        }
+
+        @media (max-width: 576px) {
+            .container {
+                padding: 20px;
+            }
+
+            .btn-success {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    {% if user.is_authenticated %}
+        <p class="text-right text-small">مرحباً {{ user.username }} | <a href="{% url 'logout' %}">تسجيل خروج</a></p>
+    {% else %}
+        <p class="text-right text-small"><a href="{% url 'login' %}">تسجيل دخول</a></p>
+    {% endif %}
+
+    <h2 class="text-center">📄 تفاصيل المبنى</h2>
+    <p class="text-center text-muted mb-4">هذه التفاصيل تظهر بعد اختيار المبنى من قبل المشرف</p>
+<span style="
+    display:inline-block;
+    background:#2c7be5;
+    color:white;
+    padding:6px 12px;
+    border-radius:6px;
+    font-size:14px;
+    font-weight:bold;
+">
+📚 المراجع العلمية: FEMA P-154, FEMA P-155, ASCE 41-13, EU8
+</span>
+    <!-- 🗺️ خريطة الموقع -->
+    <div id="map"></div>
+
+    <table class="table table-bordered">
+        <tr><th>اسم المالك</th><td>{{ building.owner_name }}</td></tr>
+        <tr><th>اسم المبنى</th><td>{{ building.building_name }}</td></tr>
+        <tr><th>رقم الهاتف</th><td>{{ building.phone_number }}</td></tr>
+        <tr><th>عدد الطوابق</th><td>{{ building.floors }}</td></tr>
+        <tr><th>موقف سيارات</th><td>{{ building.has_parking|yesno:"نعم,لا" }}</td></tr>
+        <tr><th>العنوان</th><td>{{ building.address }}</td></tr>
+        <tr><th>الإحداثيات</th><td>{{ building.latitude }}, {{ building.longitude }}</td></tr>
+        <tr><th>الحالة</th><td>{{ building.status }}</td></tr>
+        <tr><th>التقييم</th><td>{{ building.evaluation|default:"-" }}</td></tr>
+        
+    </table>
+
+<!-- 🖼️ الصور والفيديوهات -->
+<h4 class="mt-5 mb-3 text-primary">📷 الصور و 🎥 الفيديوهات</h4>
+
+<div class="row">
+    {% for media in media_files %}
+        {% if media.image %}
+            <div class="col-md-4 mb-4">
+                <div class="card shadow-sm">
+                    <img src="{{ media.image.url }}" class="card-img-top enlargeable" alt="صورة"
+                         style="height: 200px; object-fit: cover; cursor: zoom-in;">
+                </div>
+            </div>
+        {% endif %}
+        {% if media.video %}
+            <div class="col-md-6 mb-4">
+                <div class="card shadow-sm">
+                    <video controls style="width: 100%; height: 250px; border-radius: 10px;">
+                        <source src="{{ media.video.url }}" type="video/mp4">
+                        المتصفح لا يدعم تشغيل الفيديو.
+                    </video>
+                </div>
+            </div>
+        {% endif %}
+    {% empty %}
+        <div class="col-12">
+            <p class="text-muted">لا توجد صور أو فيديوهات لهذا المبنى.</p>
+        </div>
+    {% endfor %}
+</div>
+
+<!-- Modal لعرض الصورة المكبرة -->
+<div class="modal fade" id="imageModal" tabindex="-1" role="dialog" aria-labelledby="imageModalLabel"
+     aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-body p-0">
+                <img id="modalImage" src="" class="w-100" style="border-radius: 10px;" alt="صورة مكبرة">
+            </div>
+        </div>
+    </div>
+</div>
+
+<form method="post" class="bg-light p-4 rounded shadow-sm mt-4">
+    {% csrf_token %}
+    <div class="form-group">
+        <label>تقييم المبنى:</label>
+        <select name="evaluation" class="form-control" required>
+            <option value="">اختر...</option>
+            <option value="A" {% if building.evaluation == 'A' %}selected{% endif %}>A تقييم</option>
+            <option value="B" {% if building.evaluation == 'B' %}selected{% endif %}>B تقييم</option>
+            <option value="C" {% if building.evaluation == 'C' %}selected{% endif %}>C تقييم</option>
+        </select>
+        <small class="form-text text-muted mt-2" style="line-height: 1.5;">
+            <strong>A</strong> هو خطر (حالة خطرة)،<br>
+            <strong>B</strong> هو متوسط الخطورة،<br>
+            <strong>C</strong> هو جيد.
+        </small>
+    </div>
+
+    <div class="form-group">
+        <label>حالة المبنى:</label>
+        <input type="text" name="status" class="form-control" required value="{{ building.status }}">
+    </div>
+
+    <div class="text-center">
+        <button type="submit" class="btn btn-success">✅ حفظ التقييم</button>
+    </div>
+</form>
+
+</div>
+
+<!-- Leaflet JS -->
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<script>
+    const lat = {{ building.latitude }};
+    const lng = {{ building.longitude }};
+    const evaluation = "{{ building.evaluation }}";
+
+    let markerColor;
+    switch (evaluation) {
+        case 'A':
+            markerColor = 'red';
+            break;
+        case 'B':
+            markerColor = 'orange';
+            break;
+        case 'C':
+            markerColor = 'green';
+            break;
+        default:
+            markerColor = '#3399ff';  // أزرق سماوي فاتح
+
+    }
+
+    const map = L.map('map').setView([lat, lng], 16);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
+
+    // استخدم دائرة ملونة بدل الماركر
+    L.circleMarker([lat, lng], {
+        color: markerColor,        // لون حد الدائرة
+        fillColor: markerColor,    // لون التعبئة
+        fillOpacity: 0.6,
+        radius: 10                 // حجم الدائرة
+    }).addTo(map)
+      .bindPopup(`📍 {{ building.building_name }}`)
+      .openPopup();
+</script>
+<!-- jQuery و Bootstrap JS -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const images = document.querySelectorAll(".enlargeable");
+        const modalImage = document.getElementById("modalImage");
+
+        images.forEach(img => {
+            img.addEventListener("click", function () {
+                modalImage.src = this.src;
+                $('#imageModal').modal('show');
+            });
+        });
+    });
+</script>
+
+</body>
+</html>

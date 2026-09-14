@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>إدارة العمليات والمراكز</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <style>
+        :root {
+            --primary-color: #0d6efd;
+            --success-color: #198754;
+            --danger-color: #dc3545;
+            --info-color: #0dcaf0;
+            --warning-color: #ffc107;
+            --secondary-color: #6c757d;
+            --bg-color: #f4f6f9;
+            --card-bg: #ffffff;
+            --text-color: #212529;
+            --border-color: #e3e6f0;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            direction: rtl;
+        }
+
+        .container {
+            max-width: 1280px;
+            margin: 0 auto;
+        }
+
+        /* Top Header Navigation */
+        .top-navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--card-bg);
+            padding: 12px 24px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            margin-bottom: 24px;
+        }
+
+        .user-greeting {
+            margin: 0;
+            color: #333;
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .btn-logout {
+            background: #ffebe9;
+            color: var(--danger-color);
+            border: 1px solid #ffcdd2;
+            padding: 8px 18px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 14px;
+            transition: all 0.2s ease;
+        }
+
+        .btn-logout:hover {
+            background: var(--danger-color);
+            color: white;
+        }
+
+        /* Main Page Heading */
+        .page-title {
+            text-align: center;
+            color: #1a202c;
+            font-size: 32px;
+            font-weight: 700;
+            margin: 0 0 20px 0;
+        }
+
+        /* Map Container */
+        #map {
+            height: 420px;
+            width: 100%;
+            margin-bottom: 24px;
+            border-radius: 14px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+            border: 1px solid var(--border-color);
+            overflow: hidden;
+        }
+
+        /* Controls Area (Search & Add Button) */
+        .controls-wrapper {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .search-box {
+            flex: 1;
+            min-width: 280px;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 12px 16px;
+            font-size: 15px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            background-color: var(--card-bg);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+            box-sizing: border-box;
+            outline: none;
+            transition: border-color 0.2s ease;
+        }
+
+        .search-box input:focus {
+            border-color: var(--primary-color);
+        }
+
+        .btn-add-op {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 20px;
+            background-color: var(--success-color);
+            color: white;
+            text-decoration: none;
+            font-size: 15px;
+            font-weight: 600;
+            border-radius: 8px;
+            box-shadow: 0 2px 6px rgba(25, 135, 84, 0.25);
+            transition: background-color 0.2s ease, transform 0.1s ease;
+            white-space: nowrap;
+        }
+
+        .btn-add-op:hover {
+            background-color: #146c43;
+            transform: translateY(-1px);
+        }
+
+        /* Table Design */
+        .table-card {
+            background: var(--card-bg);
+            border-radius: 14px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
+            border: 1px solid var(--border-color);
+            overflow: hidden;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+
+        th {
+            background-color: #f8f9fa;
+            color: #495057;
+            padding: 14px 16px;
+            font-weight: 700;
+            border-bottom: 2px solid var(--border-color);
+            text-align: center;
+        }
+
+        td {
+            padding: 14px 16px;
+            text-align: center;
+            vertical-align: middle;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        tr:hover {
+            background-color: #f8f9fa;
+        }
+
+        /* Badges & Text Indicators */
+        .badge-info {
+            display: inline-block;
+            text-align: right;
+            line-height: 1.6;
+            font-size: 13px;
+        }
+
+        .text-success { color: var(--success-color); font-weight: 600; }
+        .text-danger { color: var(--danger-color); font-weight: 600; }
+        .text-dark { color: #212529; font-weight: 700; }
+
+        /* Action Buttons Grid inside Table */
+        .action-buttons {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        .btn-action {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 6px 12px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 600;
+            color: white;
+            border: none;
+            cursor: pointer;
+            transition: opacity 0.2s ease, transform 0.1s ease;
+        }
+
+        .btn-action:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
+        }
+
+        .btn-locate { background-color: var(--primary-color); }
+        .btn-details { background-color: var(--success-color); }
+        .btn-vehicles { background-color: var(--info-color); color: #000; }
+        .btn-employees { background-color: var(--warning-color); color: #000; }
+        .btn-attendance { background-color: var(--secondary-color); }
+
+        /* Responsive Design Adjustments */
+        @media (max-width: 768px) {
+            .controls-wrapper {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .btn-add-op {
+                justify-content: center;
+            }
+            .table-card {
+                overflow-x: auto;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+
+    <!-- Navbar -->
+    <div class="top-navbar">
+        <h6 class="user-greeting">
+            👤 مرحباً {{ request.user.username }}
+        </h6>
+
+        <form method="post" action="{% url 'logout' %}">
+            {% csrf_token %}
+            <button type="submit" class="btn-logout">
+                تسجيل الخروج
+            </button>
+        </form>
+    </div>
+
+    <!-- Title -->
+    <h2 class="page-title">إدارة المراكز والعمليات</h2>
+
+    <!-- Map -->
+    <div id="map"></div>
+
+    <!-- Control Bar (Search + Add) -->
+    <div class="controls-wrapper">
+        <div class="search-box">
+            <input type="text" id="centerSearch" onkeyup="searchCenter()" placeholder="🔍 ابحث باسم المركز أو المحافظة...">
+        </div>
+        
+        <a href="{% url 'Operation/add_operation' %}" class="btn-add-op">
+            ➕ إضافة مركز جديد
+        </a>
+    </div>
+
+    <!-- Data Table Card -->
+    <div class="table-card">
+        <table id="opsTable">
+            <thead>
+                <tr>
+                    <th>#</th> 
+                    <th>المحافظة</th>
+                    <th>المركز</th>
+                    <th>حالة المرتب </th>
+                    <th>عدد المركبات</th> 
+                    
+                    <th>إجراءات</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for op in operations %}
+                <tr>
+                    <td>{{ forloop.counter }}</td> 
+                    <td><strong>{{ op.governorate }}</strong></td>
+                    <td>{{ op.center }}</td>
+                    
+                    <td>
+                        <div class="badge-info">
+                            <span class="text-dark">الكلي: {{ op.total_employees }}</span><br>
+                            <span class="text-success">المداومين: {{ op.present_employees }}</span><br>
+                            <span class="text-danger">غير مداومين: {{ op.absent_employees }}</span>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="badge-info">
+                            <span class="text-success">داخل الخدمة: {{ op.in_service_count }}</span><br>
+                            <span class="text-danger">خارج الخدمة: {{ op.out_of_service_count }}</span>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="action-buttons">
+                            <button class="btn-action btn-locate" onclick="focusMarker('{{ op.id }}', {{ op.latitude }}, {{ op.longitude }})">
+                                📍 تحديد
+                            </button>
+                            
+                            <a href="{% url 'Operation/operation_detail' op.id %}" class="btn-action btn-details">
+                                🔍 تفاصيل
+                            </a>
+                            
+                            <a href="{% url 'Vehicle/vehicle_list' %}?source=operations&بحث={{ op.center }}" class="btn-action btn-vehicles">
+                                🚗 المركبات
+                            </a>
+
+                            <a href="{% url 'Employees/employees_by_operation' %}?operation={{ op.id }}" class="btn-action btn-employees">
+                                👥 المرتب
+                            </a>
+
+                            <a href="{% url 'add_attendance' op.id %}" class="btn-action btn-attendance">
+                                📝 الدوام
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+</div>
+
+<!-- Leaflet Map Logic & Search Functions -->
+<script>
+    var map = L.map('map').setView([31.95, 35.91], 8);
+L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+    subdomains: 'abcd',
+    maxZoom: 20
+}).addTo(map);
+    // أيقونة حمراء مخصصة
+    var RedIcon = new L.Icon({
+        iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
+        shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
+        iconSize: [25, 41],
+        iconAnchor: [12, 41],
+        popupAnchor: [1, -34],
+        shadowSize: [41, 41]
+    });
+
+    var markers = {};
+
+    {% for op in operations %}
+        var icon_options = {};
+        {% if op.all_out_of_service %}
+            icon_options.icon = RedIcon;
+        {% endif %}
+        
+        var marker = L.marker([{{ op.latitude }}, {{ op.longitude }}], icon_options).addTo(map);
+        
+        var popup_content = "<div style='text-align: right; font-family: Tahoma;'><b>{{ op.governorate }}</b><br>{{ op.center }}";
+        {% if op.all_out_of_service %}
+            popup_content += "<br><span style='color: #dc3545; font-weight: bold;'>⚠️ جميع المركبات خارج الخدمة!</span>";
+        {% endif %}
+        popup_content += "</div>";
+        
+        marker.bindPopup(popup_content);
+        markers["{{ op.id }}"] = marker;
+    {% endfor %}
+
+    function focusMarker(id, lat, lng) {
+        var marker = markers[id];
+        if (marker) {
+            map.setView([lat, lng], 13);
+            marker.openPopup();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+    }
+
+    function searchCenter() {
+        var input = document.getElementById("centerSearch");
+        var filter = input.value.toLowerCase();
+        var table = document.getElementById("opsTable");
+        var tr = table.getElementsByTagName("tr");
+
+        for (var i = 1; i < tr.length; i++) {
+            var governorateTd = tr[i].getElementsByTagName("td")[1]; 
+            var centerTd = tr[i].getElementsByTagName("td")[2]; 
+
+            var isMatch = false;
+
+            if (governorateTd) {
+                var governorateText = governorateTd.textContent || governorateTd.innerText;
+                if (governorateText.toLowerCase().indexOf(filter) > -1) {
+                    isMatch = true;
+                }
+            }
+
+            if (centerTd) {
+                var centerText = centerTd.textContent || centerTd.innerText;
+                if (centerText.toLowerCase().indexOf(filter) > -1) {
+                    isMatch = true;
+                }
+            }
+            
+            tr[i].style.display = isMatch ? "" : "none";
+        }
+    }
+</script>
+
+</body>
+</html>

@@ -1,0 +1,230 @@
+{% load crispy_forms_tags %}
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>تسجيل تحقيق</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    
+    <!-- Bootstrap & Leaflet CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+
+    <style>
+        body {
+            background: #f8f9fa;
+            font-family: 'Cairo', sans-serif;
+            direction: rtl;
+            text-align: right;
+        }
+        .container {
+            background: #fff;
+            margin-top: 30px;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 6px 12px rgba(0,0,0,0.1);
+        }
+        h2 {
+            color: #007bff;
+            text-align: center;
+            margin-bottom: 25px;
+            font-weight: bold;
+        }
+        h5.section-title {
+            margin-top: 30px;
+            margin-bottom: 20px;
+            color: #444;
+            font-weight: bold;
+        }
+        #map {
+            height: 400px;
+            margin-bottom: 10px;
+            border-radius: 10px;
+            border: 1px solid #dee2e6;
+        }
+        #current-address {
+            font-weight: bold;
+            color: #007bff;
+            margin-bottom: 25px;
+        }
+        .btn-primary {
+            font-size: 18px;
+            padding: 10px 30px;
+        }
+    </style>
+</head>
+<body>
+         {% if user.is_authenticated %}
+            <p class="text-right text-small">مرحباً {{ user.username }} | <a href="{% url 'logout' %}">تسجيل خروج</a></p>
+        {% else %}
+            <p class="text-right text-small"><a href="{% url 'login' %}">تسجيل دخول</a></p>
+        {% endif %}
+<div class="container">
+    <h2>📋 نموذج تسجيل تحقيق</h2>
+
+    {% if success_message %}
+    <div class="alert alert-success" role="alert">
+        {{ success_message }}
+    </div>
+    {% endif %}
+    <div class="text-right">
+    {% comment %} <a href="{% url '' %}" class="btn btn-info mb-3">👤 تحقيقاتي</a> {% endcomment %}
+</div>
+
+{% if investigation %}
+    <div class="text-center mt-3">
+        <a href="{% url 'download_investigation_pdf' investigation.id %}" class="btn btn-success" target="_blank">
+            📄 تحميل التحقيق PDF
+        </a>
+    </div>
+{% endif %}
+
+    <div id="map"></div>
+    <div id="current-address" class="text-right">📍 جاري تحديد العنوان...</div>
+
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+
+        <h5 class="section-title">معلومات حادث الحريق:</h5>
+        <div class="form-row">
+        
+            <div class="form-group col-md-6">
+                {{ form.location|as_crispy_field }}
+            </div>
+            <div class="form-group col-md-6">
+                {{ form.event_date|as_crispy_field }}
+            </div>
+            <div class="form-group col-md-6">
+                {{ form.event_time|as_crispy_field }}
+            </div>
+            <div class="form-group col-md-6">
+                {{ form.inspection_date|as_crispy_field }}
+            </div>
+            <div class="form-group col-md-6">
+                {{ form.inspection_time|as_crispy_field }}
+            </div>
+            <div class="form-group col-md-6">
+                {{ form.end_inspection_date|as_crispy_field }}
+            </div>
+            <div class="form-group col-md-6">
+                {{ form.end_inspection_time|as_crispy_field }}
+            </div>
+            <div class="form-group col-md-6">
+                {{ form.owner_name|as_crispy_field }}
+            </div>
+            <div class="form-group col-md-6">
+                {{ form.occupation_type|as_crispy_field }}
+            </div>
+            <div class="form-group col-md-6">
+                {{ form.insured_status|as_crispy_field }}
+            </div>
+        </div>
+
+        {{ form.general_description|as_crispy_field }}
+        {{ form.technical_observations|as_crispy_field }}
+        {{ form.fire_start_area|as_crispy_field }}
+        {{ form.damages|as_crispy_field }}
+        {{ form.cause_of_incident|as_crispy_field }}
+        {{ form.technical_analysis|as_crispy_field }}
+
+        <h5 class="section-title">📌 توقيع اللجنة:</h5>
+        <p class="text-muted mb-2">يرجى إدخال توقيع اللجنة <strong>كنص</strong> أو <strong>رفع صورة</strong>، وليس كليهما.</p>
+        
+        <div class="form-group">
+            {{ form.committee_signature_text }}
+        </div>
+
+        <div class="form-group">
+            <label for="id_signature_image">صورة التوقيع (اختياري):</label>
+            <input type="file" name="signature_image" id="id_signature_image" accept="image/*" class="form-control">
+        </div>
+
+        <h5 class="section-title">📷 ملفات توثيقية:</h5>
+
+        <div class="form-group">
+            <label for="id_images">صور (اختياري، يمكنك رفع أكثر من صورة):</label>
+            <input type="file" name="images" id="id_images" accept="image/*" multiple class="form-control">
+        </div>
+
+        <div class="form-group">
+            <label for="id_videos">فيديوهات (اختياري، يمكنك رفع أكثر من فيديو):</label>
+            <input type="file" name="videos" id="id_videos" accept="video/*" multiple class="form-control">
+        </div>
+
+        <!-- الإحداثيات -->
+        <input type="hidden" name="latitude" id="latitude">
+        <input type="hidden" name="longitude" id="longitude">
+
+        <!-- العنوان النصي الحالي -->
+        <input type="hidden" name="current_address" id="current_address_hidden">
+
+        <div class="text-center mt-4">
+            <button type="submit" class="btn btn-primary">💾 حفظ التحقيق</button>
+        </div>
+    </form>
+</div>
+
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<script>
+    // إنشاء الخريطة مركزها الافتراضي في مكان عام
+    const map = L.map('map').setView([32.22, 35.26], 13);
+    
+    // إضافة طبقة الخرائط من OpenStreetMap
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '© OpenStreetMap'
+    }).addTo(map);
+    
+    let marker; // متغير لتخزين العلامة على الخريطة
+    
+    // دالة لتحديث الموقع على الخريطة والعنوان في الصفحة
+    function updatePosition(lat, lng) {
+        document.getElementById('latitude').value = lat;
+        document.getElementById('longitude').value = lng;
+
+        // تحديث مركز الخريطة
+        map.setView([lat, lng], 16);
+
+        // إذا كان هناك علامة سابقة، حدد موقعها الجديد، وإلا أنشئ علامة جديدة
+        if (marker) {
+            marker.setLatLng([lat, lng]);
+        } else {
+            marker = L.marker([lat, lng]).addTo(map);
+        }
+
+        // جلب العنوان النصي من API عكس الإحداثيات
+        fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&accept-language=ar`)
+            .then(response => response.json())
+            .then(data => {
+                const address = data.display_name || 'لم يتم العثور على عنوان';
+                document.getElementById('current-address').textContent = '📍 العنوان الحالي: ' + address;
+                document.getElementById('current_address_hidden').value = address;
+            })
+            .catch(() => {
+                document.getElementById('current-address').textContent = '⚠️ تعذر جلب العنوان.';
+            });
+    }
+
+    // طلب موقع المستخدم عند تحميل الصفحة
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+            (position) => {
+                updatePosition(position.coords.latitude, position.coords.longitude);
+            },
+            () => {
+                document.getElementById('current-address').textContent = '⚠️ تعذر تحديد الموقع.';
+            }
+        );
+    } else {
+        document.getElementById('current-address').textContent = '⚠️ المتصفح لا يدعم تحديد الموقع.';
+    }
+
+    // تمكين المستخدم من تغيير الموقع بالنقر على الخريطة
+    map.on('click', function(e) {
+        updatePosition(e.latlng.lat, e.latlng.lng);
+    });
+</script>
+
+
+</body>
+</html>

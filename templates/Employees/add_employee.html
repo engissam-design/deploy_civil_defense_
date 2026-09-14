@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>إضافة عننصر جديد</title>
+
+    <style>
+        body {
+            font-family: Tahoma, sans-serif;
+            background: #f4f6f8;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+        }
+
+        .card {
+            background: #fff;
+            max-width: 900px;
+            margin: auto;
+            padding: 30px 35px;
+            border-radius: 15px;
+            box-shadow: 0 6px 20px rgba(0,0,0,.1);
+        }
+
+        h2{
+            margin-top:0;
+            color:#2c3e50;
+        }
+
+        .form-grid{
+            display:grid;
+            grid-template-columns:1fr 2fr;
+            gap:15px 20px;
+            margin-bottom:25px;
+        }
+
+        .form-grid label{
+            font-weight:bold;
+            align-self:center;
+        }
+
+        .form-grid input,
+        .form-grid select,
+        .form-grid textarea{
+            padding:8px 10px;
+            border:1px solid #ccc;
+            border-radius:6px;
+            font-size:14px;
+            width:90%;
+        }
+
+        .form-grid textarea{
+            resize:vertical;
+        }
+
+        .btn{
+            padding:12px 25px;
+            border:none;
+            border-radius:8px;
+            cursor:pointer;
+            font-size:16px;
+            transition:.3s;
+        }
+
+        .btn-save{
+            background:#27ae60;
+            color:white;
+            margin-top:20px;
+        }
+
+        .btn-save:hover{
+            background:#1e8449;
+        }
+
+        .certificate-row{
+            margin-bottom:10px;
+        }
+
+        .certificate-row input{
+            margin-left:10px;
+            margin-bottom:8px;
+        }
+
+        @media(max-width:600px){
+            .form-grid{
+                grid-template-columns:1fr;
+            }
+        }
+
+    </style>
+
+    <script>
+        function addCertificate(){
+
+            let container=document.getElementById("certificates-section");
+
+            let div=document.createElement("div");
+
+            div.classList.add("certificate-row");
+
+            div.innerHTML=`
+                <input type="text" name="certificate_name[]" placeholder="اسم الشهادة أو الدورة">
+                <input type="date" name="certificate_date[]">
+                <input type="file" name="certificate_file[]">
+            `;
+
+            container.appendChild(div);
+
+        }
+    </script>
+
+</head>
+
+<body>
+
+<div class="card">
+
+<a href="{% url 'Employees/employees_by_operation' %}?operation={{ request.GET.operation }}"
+class="btn"
+style="background:#7f8c8d;color:white;text-decoration:none;display:inline-block;margin-bottom:20px;">
+رجوع
+</a>
+
+<form method="post" enctype="multipart/form-data">
+
+{% csrf_token %}
+
+{% if form.errors %}
+<div style="color:red;margin-bottom:20px;">
+{{ form.errors }}
+</div>
+{% endif %}
+
+<h2> معلومات عن العنصر</h2>
+
+<div class="form-grid">
+
+<label>المركز</label>
+{{ form.operation }}
+
+<label>الاسم</label>
+{{ form.name }}
+
+<label>رقم الجوال</label>
+{{ form.mobile }}
+
+<label>مكان السكن</label>
+{{ form.address }}
+
+<label> رتبة العنصر</label>
+{{ form.rank }}
+
+<label>تاريخ الرتبة</label>
+{{ form.rank_date }}
+
+<label>المستوى العلمي</label>
+{{ form.education_level }}
+
+<label>الوصف الوظيفي</label>
+{{ form.job_description }}
+
+</div>
+
+<h2>الشهادات والدورات</h2>
+
+<div id="certificates-section">
+
+<div class="certificate-row">
+
+<input type="text" name="certificate_name[]" placeholder="اسم الشهادة أو الدورة">
+
+<input type="date" name="certificate_date[]">
+
+<input type="file" name="certificate_file[]">
+
+</div>
+
+</div>
+
+<button type="button" onclick="addCertificate()">
+➕ إضافة شهادة أو دورة
+</button>
+
+<br><br>
+
+<button type="submit" class="btn btn-save">
+💾 حفظ
+</button>
+
+</form>
+
+</div>
+
+</body>
+</html>

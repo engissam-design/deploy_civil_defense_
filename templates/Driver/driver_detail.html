@@ -1,0 +1,186 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>تفاصيل السائق</title>
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+    <style>
+        body {
+            font-family: "Cairo", sans-serif;
+            background: #f5f7fa;
+            margin: 0;
+            padding: 0;
+        }
+
+        h1 {
+            text-align: center;
+            margin: 30px 0;
+            color: #333;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: auto;
+            padding: 20px;
+        }
+
+        .card {
+            background: #fff;
+            padding: 20px 25px;
+            margin-bottom: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+        }
+
+        .card h2 {
+            margin-bottom: 15px;
+            color: #444;
+            font-size: 20px;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 8px;
+        }
+
+        p {
+            margin: 10px 0;
+            font-size: 15px;
+            color: #555;
+        }
+
+        strong {
+            color: #222;
+        }
+
+        img {
+            display: block;
+            margin-top: 10px;
+            border-radius: 10px;
+            max-width: 100%;
+            height: auto;
+            border: 1px solid #ddd;
+        }
+
+        ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        ul li {
+            background: #f0f4f8;
+            margin-bottom: 8px;
+            padding: 10px 12px;
+            border-radius: 8px;
+            font-size: 14px;
+            color: #333;
+        }
+
+        .no-vehicles {
+            color: #999;
+            font-style: italic;
+        }
+
+        .back-link {
+            display: block;
+            text-align: center;
+            margin-top: 20px;
+            text-decoration: none;
+            font-weight: bold;
+            color: #4a90e2;
+        }
+
+        .back-link:hover {
+            text-decoration: underline;
+        }.images-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 20px;
+    margin-top: 15px;
+}
+
+.image-box {
+    text-align: center;
+    background: #fafafa;
+    padding: 15px;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+
+.image-box h3 {
+    margin-bottom: 10px;
+    font-size: 16px;
+    color: #333;
+}
+
+.image-box img {
+    width: 100%;
+    max-height: 250px;
+    object-fit: contain;
+    border-radius: 10px;
+    border: 2px solid #ddd;
+    transition: transform 0.3s ease;
+    cursor: pointer;
+}
+
+.image-box img:hover {
+    transform: scale(1.05);
+}
+
+    </style>
+</head>
+<body>
+    <h1>👤 تفاصيل السائق: {{ driver.name }}</h1>
+
+    <div class="container">
+
+        <div class="card">
+            <h2>📋 المعلومات الأساسية</h2>
+            <p><strong>رقم الهوية:</strong> {{ driver.national_id }}</p>
+            <p><strong>مكان السكن:</strong> {{ driver.residence }}</p>
+            <p><strong>المدينة / القرية:</strong> {{ driver.city_or_village }}</p>
+            <p><strong>معلومات رخصة القيادة:</strong> {{ driver.license_info }}</p>
+            <p><strong>موقع العمل:</strong> {{ driver.work_location }}</p>
+        </div>
+
+      {% if driver.id_card_image or driver.personal_image or driver.license_image %}
+<div class="card">
+    <h2>🖼️ الصور</h2>
+    <div class="images-grid">
+        {% if driver.id_card_image %}
+        <div class="image-box">
+            <h3>🆔 الهوية</h3>
+            <img src="{{ driver.id_card_image.url }}" alt="صورة الهوية">
+        </div>
+        {% endif %}
+
+        {% if driver.personal_image %}
+        <div class="image-box">
+            <h3>📸 شخصية</h3>
+            <img src="{{ driver.personal_image.url }}" alt="الصورة الشخصية">
+        </div>
+        {% endif %}
+
+        {% if driver.license_image %}
+        <div class="image-box">
+            <h3>🪪 الرخصة</h3>
+            <img src="{{ driver.license_image.url }}" alt="صورة الرخصة">
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endif %}
+
+        <div class="card">
+            <h2>🚗 المركبات المرتبطة بالسائق</h2>
+            <ul>
+                {% for مركبة in driver.vehicles.all %}
+                    <li>{{ مركبة.vehicle_number }} - {{ مركبة.vehicle_type }}</li>
+                {% empty %}
+                    <li class="no-vehicles">لا توجد مركبات مرتبطة بالسائق.</li>
+                {% endfor %}
+            </ul>
+        </div>
+
+        <a href="{% url 'driver_list' %}" class="back-link">⬅ العودة لقائمة السائقين</a>
+    </div>
+</body>
+</html>

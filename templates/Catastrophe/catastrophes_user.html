@@ -1,0 +1,255 @@
+
+{% load crispy_forms_tags %}
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <title>تقييم المباني</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css">
+
+   <style>
+    body {
+        background: linear-gradient(to right, #f8f9fa, #e9ecef);
+        font-family: 'Cairo', sans-serif;
+        direction: rtl;
+    }
+
+    .container {
+        max-width: 1000px;
+        margin-top: 40px;
+        background-color: #ffffff;
+        padding: 35px 40px;
+        border-radius: 14px;
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+    }
+
+    h2, h4, h5 {
+        font-weight: bold;
+        color: #0056b3;
+        text-align: right;
+    }
+
+    .section-title {
+        margin-bottom: 30px;
+        border-bottom: 2px solid #007bff;
+        padding-bottom: 12px;
+    }
+
+    .map-container {
+        background-color: #f1f7ff;
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 30px;
+        border: 1px solid #cfe2ff;
+    }
+
+    label {
+        font-weight: bold;
+        color: #333;
+        display: block;
+        text-align: right;
+        margin-bottom: 6px;
+    }
+
+    .form-control {
+        font-size: 15px;
+        padding: 10px 14px;
+        border-radius: 10px;
+        border: 1px solid #ced4da;
+        direction: rtl;
+        text-align: right;
+    }
+
+.form-check {
+    display: flex;
+    align-items: center;
+    direction: rtl;
+    justify-content: flex-start;
+    gap: 10px;
+    flex-direction: row-reverse;
+}
+
+.form-check-label {
+    margin: 0;
+    text-align: right;
+    flex-grow: 1;
+}
+
+
+    .form-check-input {
+        width: 20px;
+        height: 20px;
+    }
+
+    .btn {
+        font-size: 17px;
+        padding: 10px 25px;
+        border-radius: 10px;
+        transition: 0.3s;
+    }
+
+    .btn-primary {
+        background-color: #007bff;
+        border-color: #007bff;
+    }
+
+    .btn-primary:hover {
+        background-color: #0056b3;
+    }
+
+    .btn-danger:hover {
+        background-color: #b02a37;
+    }
+
+    .alert {
+        font-size: 16px;
+        border-radius: 10px;
+        text-align: right;
+    }
+
+    .text-small {
+        font-size: 14px;
+    }
+
+    .form-group {
+        margin-bottom: 20px;
+    }
+
+    @media (max-width: 576px) {
+        .container {
+            padding: 25px 20px;
+        }
+
+        .btn {
+            width: 100%;
+            margin-bottom: 10px;
+        }
+    }
+</style>
+
+</head>
+
+<body>
+    <a href="{% url 'Catastrophe/history_catastrophe_details' %}" class="btn btn-outline-primary">🏗️ البنايات التي قمت بادخالها سابقا</a>
+
+    <div class="container">
+
+    
+
+        {% if user.is_authenticated %}
+            <p class="text-right text-small">مرحباً {{ user.username }} | <a href="{% url 'logout' %}">تسجيل خروج</a></p>
+        {% else %}
+            <p class="text-right text-small"><a href="{% url 'login' %}">تسجيل دخول</a></p>
+        {% endif %}
+
+        <h2 class="text-center section-title">📍  الكوارث - المستخدم العادي</h2>
+
+        <div class="map-container">
+            <h4 class="mb-3">🗺️ الخريطة</h4>
+            {{ m|safe }}
+        </div>
+
+           {% if submitted %}
+        <div class="alert alert-success text-center">✅ تم حفظ المعلومات بنجاح!</div>
+        {% endif %}
+
+<div class="mb-4">
+    <h5><strong>📌 العنوان الحالي:</strong> {{ address }}</h5>
+</div>
+
+     
+
+        <h4 class="section-title">🏢 معلومات المبنى</h4>
+    {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-success text-center">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+
+
+        <form method="post" enctype="multipart/form-data">
+
+            {% csrf_token %}
+
+            <div class="form-group">
+                {{ form.owner_name.label_tag }}
+                {{ form.owner_name }}
+            </div>
+
+            <div class="form-group">
+                {{ form.building_name.label_tag }}
+                {{ form.building_name }}
+            </div>
+
+            <div class="form-group">
+                {{ form.phone_number.label_tag }}
+                {{ form.phone_number }}
+            </div>
+
+            <div class="form-group">
+                {{ form.floors.label_tag }}
+                {{ form.floors }}
+            </div>
+<div class="form-group">
+    <label>📷 الصور (يمكن اختيار عدة صور):</label>
+    <input type="file" name="images" multiple class="form-control" accept="image/*">
+</div>
+
+<div class="form-group">
+    <label>🎥 الفيديوهات (يمكن اختيار عدة فيديوهات):</label>
+    <input type="file" name="videos" multiple class="form-control" accept="video/*">
+</div>
+
+
+<div class="form-group form-check form-check-inline">
+    {{ form.has_parking }}
+    <label class="form-check-label mr-2" for="{{ form.has_parking.id_for_label }}">{{ form.has_parking.label }}</label>
+</div>
+
+
+
+            <div class="text-center mt-4">
+                <button type="submit" class="btn btn-primary">💾 حفظ المعلومات</button>
+            </div>
+        </form>
+    </div>
+
+    <script>
+       window.onload = function () {
+    const urlParams = new URLSearchParams(window.location.search);
+    const lat = urlParams.get("lat");
+    const lng = urlParams.get("lng");
+    const address = urlParams.get("address");
+
+    if (!lat || !lng) {
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(function (position) {
+                const currentLat = position.coords.latitude;
+                const currentLng = position.coords.longitude;
+
+                // فقط أعد التوجيه إذا لم تكن هناك إحداثيات
+                const page = window.location.pathname;
+                fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${currentLat}&lon=${currentLng}&accept-language=ar`)
+                    .then(response => response.json())
+                    .then(data => {
+                        const addressText = data.display_name || 'موقعك الحالي';
+                        window.location.href = `${page}?lat=${currentLat}&lng=${currentLng}&color=blue&address=${encodeURIComponent(addressText)}`;
+                    });
+            }, function (error) {
+                alert("حدث خطأ أثناء تحديد الموقع: " + error.message);
+            });
+        } else {
+            alert("المتصفح لا يدعم تحديد الموقع الجغرافي.");
+        }
+    } else {
+        document.getElementById("lat").value = lat;
+        document.getElementById("lng").value = lng;
+    }
+}
+
+    </script>
+</body>
+</html>

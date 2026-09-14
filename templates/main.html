@@ -1,0 +1,728 @@
+{% extends "base.html" %}
+
+{% block title %}أقسام الدفاع المدني والطوارئ{% endblock %}
+
+{% block extra_css %}
+<!-- استدعاء FontAwesome للأيقونات -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<!-- استدعاء خط Tajawal المميز للمواقع الحكومية والاحترافية -->
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+
+<style>
+/* --------------------------------------------------
+   1. المتغيرات والأساسيات (Design System)
+-------------------------------------------------- */
+:root {
+  --primary: #d9381e;
+  --primary-hover: #b82a13;
+  --primary-subtle: rgba(217, 56, 30, 0.08);
+  --secondary: #0f172a;
+  --accent: #f59e0b;
+  --bg-main: #f8fafc;
+  --surface: #ffffff;
+  --text-main: #0f172a;
+  --text-muted: #64748b;
+  --border-color: #e2e8f0;
+  
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.05), 0 1px 2px rgba(0,0,0,0.1);
+  --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.05), 0 2px 4px -1px rgba(0,0,0,0.03);
+  --shadow-lg: 0 20px 25px -5px rgba(0,0,0,0.08), 0 10px 10px -5px rgba(0,0,0,0.02);
+  
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 20px;
+}
+
+.services-page {
+  background-color: var(--bg-main);
+  padding: 40px 0 100px;
+  font-family: 'Tajawal', 'Segoe UI', sans-serif;
+  direction: rtl;
+  color: var(--text-main);
+}
+
+.container {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+/* =========================================
+   شريط التنبيهات العاجلة
+========================================= */
+
+.ticker-wrap {
+    background: var(--secondary);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: var(--radius-md);
+    padding: 10px 16px;
+    display: flex;
+    align-items: center;
+    margin-bottom: 40px;
+    box-shadow: var(--shadow-md);
+    overflow: hidden;
+    position: relative;
+    direction: rtl;
+}
+
+.ticker-title {
+    background: var(--primary);
+    color: #ffffff;
+    padding: 8px 16px;
+    border-radius: var(--radius-sm);
+    font-weight: 700;
+    font-size: 0.875rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    white-space: nowrap;
+    margin-left: 15px;
+    box-shadow: 0 2px 8px rgba(217, 56, 30, 0.4);
+    z-index: 10;
+    flex-shrink: 0;
+}
+
+.ticker-title i {
+    animation: pulse-ring 1.5s infinite;
+}
+
+@keyframes pulse-ring {
+    0% {
+        transform: scale(0.95);
+        opacity: 0.8;
+    }
+
+    50% {
+        transform: scale(1.15);
+        opacity: 1;
+    }
+
+    100% {
+        transform: scale(0.95);
+        opacity: 0.8;
+    }
+}
+
+/* منطقة عرض الشريط */
+.ticker-content {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    position: relative;
+    direction: rtl;
+}
+
+/* النص المتحرك */
+.ticker-text {
+    display: inline-flex;
+    align-items: center;
+    white-space: nowrap;
+    width: max-content;
+
+    /* يبدأ من خارج الجهة اليمنى */
+    animation: ticker-marquee 30s linear infinite;
+}
+
+/* كل تنبيه */
+.ticker-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+
+    color: #f1f5f9;
+    font-size: 0.95rem;
+    font-weight: 500;
+
+    white-space: nowrap;
+}
+
+/* عنوان التنبيه */
+.ticker-item .ticker-heading {
+    color: var(--accent);
+    font-weight: 800;
+}
+
+/* الفاصل بين التنبيهات */
+.ticker-separator {
+    margin: 0 25px;
+    color: var(--primary);
+    font-size: 0.65rem;
+    display: inline-flex;
+    align-items: center;
+}
+
+/* حركة الشريط من اليمين إلى اليسار */
+@keyframes ticker-marquee {
+
+    0% {
+        transform: translateX(-100%);
+    }
+
+    100% {
+        transform: translateX(100%);
+    }
+
+}
+
+/* إيقاف الحركة عند وضع الماوس */
+.ticker-wrap:hover .ticker-text {
+    animation-play-state: paused;
+}
+/* --------------------------------------------------
+   3. العناوين الرئيسية للأقسام
+-------------------------------------------------- */
+.section-title {
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.section-title h2 {
+  font-size: 2rem;
+  font-weight: 800;
+  color: var(--text-main);
+  margin: 0 0 10px;
+  letter-spacing: -0.5px;
+}
+
+.section-title p {
+  color: var(--text-muted);
+  font-size: 1rem;
+  margin: 0;
+}
+
+.section-title .title-badge {
+  display: inline-block;
+  width: 40px;
+  height: 4px;
+  background: var(--primary);
+  border-radius: 2px;
+  margin-top: 12px;
+}
+
+/* --------------------------------------------------
+   4. قسم الإعلانات والإنذارات (Announcements)
+-------------------------------------------------- */
+.announcements-container {
+  margin-bottom: 60px;
+}
+
+.announcements-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 24px;
+}
+
+.announcement-card {
+  background: var(--surface);
+  border-radius: var(--radius-md);
+  padding: 24px;
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-sm);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+.announcement-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-lg);
+  border-color: rgba(217, 56, 30, 0.3);
+}
+
+.announcement-card.urgent {
+  border-top: 4px solid var(--primary);
+}
+
+.announcement-card:not(.urgent) {
+  border-top: 4px solid var(--secondary);
+}
+
+.announcement-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 14px;
+}
+
+.announcement-tag {
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 4px 12px;
+  border-radius: 20px;
+  background: var(--primary-subtle);
+  color: var(--primary);
+}
+
+.announcement-date {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.announcement-card h4 {
+  margin: 0 0 10px;
+  font-size: 1.15rem;
+  color: var(--text-main);
+  font-weight: 700;
+  line-height: 1.4;
+}
+
+.announcement-card p {
+  margin: 0;
+  font-size: 0.925rem;
+  color: var(--text-muted);
+  line-height: 1.6;
+}
+
+/* --------------------------------------------------
+   5. بطاقة التعريف والجودة (About Hero Card)
+-------------------------------------------------- */
+.about-card {
+  background: var(--surface);
+  border-radius: var(--radius-lg);
+  padding: 40px;
+  margin-bottom: 60px;
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border-color);
+  position: relative;
+  overflow: hidden;
+}
+
+.about-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 6px;
+  height: 100%;
+  background: var(--primary);
+}
+
+.about-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 20px;
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 24px;
+  margin-bottom: 24px;
+}
+
+.about-title-group {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.about-title-group .icon-box {
+  width: 52px;
+  height: 52px;
+  background: var(--primary-subtle);
+  color: var(--primary);
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+}
+
+.about-title {
+  margin: 0;
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: var(--text-main);
+}
+
+.official-badges {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.badge-item {
+  background: var(--bg-main);
+  color: var(--text-muted);
+  padding: 6px 16px;
+  border-radius: 30px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  border: 1px solid var(--border-color);
+}
+
+.about-desc {
+  font-size: 1.05rem;
+  line-height: 1.8;
+  color: #475569;
+  margin: 0;
+}
+
+/* --------------------------------------------------
+   6. شبكة الخدمات الحديثة (Service Grid)
+-------------------------------------------------- */
+.services-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
+  gap: 24px;
+  margin-bottom: 70px;
+}
+
+.service-card {
+  background: var(--surface);
+  border-radius: var(--radius-lg);
+  padding: 32px 24px 28px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border-color);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+}
+
+.service-card:hover {
+  transform: translateY(-6px);
+  box-shadow: var(--shadow-lg);
+  border-color: rgba(217, 56, 30, 0.2);
+}
+
+.icon-wrapper {
+  width: 72px;
+  height: 72px;
+  margin: 0 auto 20px;
+  background: var(--bg-main);
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  border: 1px solid var(--border-color);
+}
+
+.service-card:hover .icon-wrapper {
+  background: var(--primary-subtle);
+  border-color: transparent;
+  transform: scale(1.05);
+}
+
+.icon-wrapper img {
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
+}
+
+.service-card h3 {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--text-main);
+  margin: 0 0 12px;
+}
+
+.service-card p {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  line-height: 1.6;
+  margin: 0 0 24px;
+  flex-grow: 1;
+}
+
+.btn-card {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: var(--secondary);
+  color: #fff;
+  text-decoration: none;
+  padding: 12px 20px;
+  border-radius: var(--radius-md);
+  font-size: 0.9rem;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.service-card:hover .btn-card {
+  background: var(--primary);
+  color: #fff;
+}
+
+.badge-under-dev {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  background: #fef2f2;
+  color: #dc2626;
+  border: 1px solid #fee2e2;
+  font-size: 0.725rem;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 20px;
+}
+
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="services-page">
+  <div class="container">
+
+<!-- 🚨 شريط التنبيهات العاجلة -->
+<div class="ticker-wrap">
+
+    <!-- عنوان الشريط -->
+    <div class="ticker-title">
+        <i class="fa-solid fa-triangle-exclamation"></i>
+        تنبيهات عاجلة
+    </div>
+
+    <!-- محتوى الشريط -->
+    <div class="ticker-content">
+
+        <div class="ticker-text">
+
+            {% for item in tickers %}
+
+                <div class="ticker-item">
+
+                    <strong class="ticker-heading">
+                        {{ item.title }}
+                    </strong>
+
+                    {% if item.content %}
+                        <span>
+                            {{ item.content }}
+                        </span>
+                    {% endif %}
+
+                    {% if item.emergency_number %}
+                        <span>
+                            | رقم الطوارئ: {{ item.emergency_number }}
+                        </span>
+                    {% endif %}
+
+                </div>
+
+                {% if not forloop.last %}
+                    <span class="ticker-separator">
+                        <i class="fa-solid fa-circle"></i>
+                    </span>
+                {% endif %}
+
+            {% empty %}
+
+                <div class="ticker-item">
+                    <span>
+                        لا توجد تنبيهات عاجلة حالياً.
+                    </span>
+                </div>
+
+            {% endfor %}
+
+        </div>
+
+    </div>
+
+</div>
+    <!-- 🏛️ قسم عن الدفاع المدني -->
+    <div class="about-card">
+      <div class="about-header">
+        <div class="about-title-group">
+          <div class="icon-box">
+            <i class="fa-solid fa-shield-halved"></i>
+          </div>
+          <h2 class="about-title">عن الدفاع المدني الفلسطيني</h2>
+        </div>
+        <div class="official-badges">
+          <span class="badge-item">دولة فلسطين</span>
+          <span class="badge-item">وزارة الداخلية</span>
+          <span class="badge-item">تأسس عام 1996</span>
+        </div>
+      </div>
+      <p class="about-desc">
+        الدفاع المدني الفلسطيني هو الجهاز العامل ضمن هيكلية وزارة الداخلية لحماية أرواح المواطنين وممتلكاتهم زمن السلم أو الحرب سواءً في الكوارث الطبيعية أو الصناعية.
+        تأسس الدفاع المدني الفلسطيني عام 1996 بقرار رئاسي وأقر قانونه في المجلس التشريعي عام 1998 ميلادية بموجب القانون رقم 3 لعام 1998، كما أُقرت لوائحه التنفيذية عام 2001 بمصادقة السيد الرئيس.
+      </p>
+    </div>
+
+    <!-- 📢 قسم الإعلانات والتنويهات -->
+    <div class="announcements-container">
+      <div class="section-title">
+        <h2>مركز الإعلانات والأخبار</h2>
+        <p>آخر التنويهات والتعليمات الصادرة عن الدفاع المدني الفلسطيني</p>
+        <div class="title-badge"></div>
+      </div>
+
+      <div class="announcements-grid">
+        {% for item in announcements %}
+        <div class="announcement-card {% if item.is_urgent %}urgent{% endif %}">
+          <div class="announcement-header">
+            <span class="announcement-tag">{{ item.get_category_display }}</span>
+            <span class="announcement-date"><i class="fa-regular fa-clock"></i> {{ item.created_at|date:"d M Y" }}</span>
+          </div>
+          <h4>{{ item.title }}</h4>
+          <p>{{ item.content }}</p>
+        </div>
+        {% empty %}
+        <p style="grid-column: 1/-1; text-align: center; color: var(--text-muted);">لا توجد إعلانات أو أخبار حالياً.</p>
+        {% endfor %}
+      </div>
+    </div>
+
+
+    <!-- 🚒 قسم الأقسام الرئيسية -->
+    <div class="section-title">
+      <h2>الأقسام والدوائر الرئيسية</h2>
+      <p>اختر القسم المطلوب للاطلاع على الخدمات والمهام الميدانية</p>
+      <div class="title-badge"></div>
+    </div>
+
+    <div class="services-grid">
+
+      <div class="service-card">
+        <div class="icon-wrapper">
+          <img src="https://cdn-icons-png.flaticon.com/512/684/684908.png" alt="إدارة الكوارث">
+        </div>
+        <h3>إدارة الكوارث</h3>
+        <p>التعامل مع الكوارث الطبيعية والحوادث الكبرى والاستجابة السريعة.</p>
+        <a href="#" class="btn-card">عرض المزيد <i class="fa-solid fa-arrow-left"></i></a>
+      </div>
+
+      <div class="service-card">
+        <div class="icon-wrapper">
+          <img src="https://cdn-icons-png.flaticon.com/512/69/69524.png" alt="إدارة العمليات">
+        </div>
+        <h3>إدارة العمليات</h3>
+        <p>إدارة جميع المراكز ومتابعة سير العمل الميداني على مدار الساعة.</p>
+        <a href="http://172.16.16.16/" class="btn-card">عرض المزيد <i class="fa-solid fa-arrow-left"></i></a>
+      </div>
+<div class="service-card">
+  <div class="icon-wrapper">
+<img src="https://cdn-icons-png.flaticon.com/512/1570/1570887.png" alt="الإدارة والتنظيم">  </div>
+  <h3>الإدارة والتنظيم</h3>
+  <p>إدارة وتوجيه سير العمل الميداني والإداري بفاعلية.</p>
+  <a href="{% url 'Operation/operations_map' %}" class="btn-card">عرض المزيد <i class="fa-solid fa-arrow-left"></i></a>
+</div>
+
+      <div class="service-card">
+        <div class="icon-wrapper">
+          <img src="https://static.thenounproject.com/png/automobile-icon-2890723-512.png" alt="النقل والصيانة">
+        </div>
+        <h3>النقل والصيانة</h3>
+        <p>الصيانة الدورية لمركبات ومعدات الإطفاء والإنقاذ لضمان جاهزيتها.</p>
+        <a href="{% url 'Vehicle/vehicle_list' %}?source=maintenance" class="btn-card">عرض المزيد <i class="fa-solid fa-arrow-left"></i></a>
+      </div>
+
+      <div class="service-card">
+        <div class="icon-wrapper">
+          <img src="https://cdn-icons-png.flaticon.com/512/3169/3169787.png" alt="الإطفاء والإنقاذ">
+        </div>
+        <h3>الإطفاء والإنقاذ</h3>
+        <p>الاستجابة المباشرة لحوادث الحرائق وعمليات الإنقاذ المعقدة.</p>
+        <a href="#" class="btn-card">عرض المزيد <i class="fa-solid fa-arrow-left"></i></a>
+      </div>
+
+      <div class="service-card">
+        <div class="icon-wrapper">
+          <img src="https://static.thenounproject.com/png/620376-200.png" alt="وحدة التحقيق">
+        </div>
+        <h3>وحدة التحقيق</h3>
+        <p>التحقيق في أسباب الحوادث وجمع الأدلة وإعداد التقارير الفنية.</p>
+        <a href="#" class="btn-card">عرض المزيد <i class="fa-solid fa-arrow-left"></i></a>
+      </div>
+
+      <div class="service-card">
+        <span class="badge-under-dev">قيد الإنشاء</span>
+        <div class="icon-wrapper">
+          <img src="https://cdn-icons-png.flaticon.com/512/595/595067.png" alt="السلامة العامة">
+        </div>
+        <h3>السلامة العامة</h3>
+        <p>تعزيز ثقافة السلامة ومنع الحوادث في المنشآت الاقتصادية.</p>
+        <a href="http://172.16.16.186/" class="btn-card">عرض المزيد <i class="fa-solid fa-arrow-left"></i></a>
+      </div>
+
+      <div class="service-card">
+        <span class="badge-under-dev">قيد الإنشاء</span>
+        <div class="icon-wrapper">
+          <img src="https://static.thenounproject.com/png/law-icon-213035-512.png" alt="اللوجستيات">
+        </div>
+        <h3>اللوجستيات</h3>
+        <p>إدارة الموارد والمستلزمات لضمان استمرارية عمل الطواقم.</p>
+        <a href="#" class="btn-card">عرض المزيد <i class="fa-solid fa-arrow-left"></i></a>
+      </div>
+
+      <div class="service-card">
+        <div class="icon-wrapper">
+          <img src="https://static.thenounproject.com/png/2890539-512.png" alt="تكنولوجيا المعلومات">
+        </div>
+        <h3>تكنولوجيا المعلومات</h3>
+        <p>تطوير الأنظمة الرقمية وتحديث شبكة الاتصالات والعمليات.</p>
+        <a href="#" class="btn-card">عرض المزيد <i class="fa-solid fa-arrow-left"></i></a>
+      </div>
+
+      <div class="service-card">
+        <div class="icon-wrapper">
+          <img src="https://cdn-icons-png.flaticon.com/512/3281/3281313.png" alt="التدريب">
+        </div>
+        <h3>إدارة التدريب</h3>
+        <p>تأهيل وتطوير مهارات الكوادر عبر تدريبات ميدانية متقدمة.</p>
+        <a href="#" class="btn-card">عرض المزيد <i class="fa-solid fa-arrow-left"></i></a>
+      </div>
+
+      <div class="service-card">
+        <span class="badge-under-dev">قيد الإنشاء</span>
+        <div class="icon-wrapper">
+          <img src="https://static.thenounproject.com/png/human-resources-icon-4310966-512.png" alt="الموارد البشرية">
+        </div>
+        <h3>الموارد البشرية</h3>
+        <p>إدارة وتطوير رأس المال البشري والشؤون الإدارية للكادر.</p>
+        <a href="#" class="btn-card">عرض المزيد <i class="fa-solid fa-arrow-left"></i></a>
+      </div>
+
+      <div class="service-card">
+        <div class="icon-wrapper">
+          <img src="https://static.thenounproject.com/png/volunteer-management-icon-3159285-512.png" alt="المتطوعين">
+        </div>
+        <h3>إدارة المتطوعين</h3>
+        <p>تنظيم وتأهيل المتطوعين للتعامل مع حالات الطوارئ.</p>
+        <a href="#" class="btn-card">عرض المزيد <i class="fa-solid fa-arrow-left"></i></a>
+      </div>
+
+      <div class="service-card">
+        <div class="icon-wrapper">
+          <img src="https://cdn-icons-png.flaticon.com/512/2920/2920198.png" alt="العلاقات الدولية">
+        </div>
+        <h3>العلاقات الدولية</h3>
+        <p>تعزيز التعاون الدولي وتبادل الخبرات مع الجهات الشريكة.</p>
+        <a href="#" class="btn-card">عرض المزيد <i class="fa-solid fa-arrow-left"></i></a>
+      </div>
+
+      <div class="service-card">
+        <span class="badge-under-dev">قيد الإنشاء</span>
+        <div class="icon-wrapper">
+          <img src="https://static.thenounproject.com/png/media-relations-icon-5929936-512.png" alt="الإعلام">
+        </div>
+        <h3>العلاقات العامة والإعلام</h3>
+        <p>نشر الإرشادات الوقائية والتواصل المباشر مع الجمهور.</p>
+        <a href="{% url 'superuser_all_phones' %}" class="btn-card">عرض الأرقام <i class="fa-solid fa-phone"></i></a>
+      </div>
+
+      <div class="service-card">
+        <div class="icon-wrapper">
+          <img src="https://cdn-icons-png.flaticon.com/512/2920/2920198.png" alt="القانونية">
+        </div>
+        <h3>الدائرة القانونية</h3>
+        <p>تقديم الاستشارات القانونية وتمثيل الجهاز في كافة الشؤون الرسمية.</p>
+        <a href="#" class="btn-card">عرض المزيد <i class="fa-solid fa-arrow-left"></i></a>
+      </div>
+
+    </div>
+
+ 
+
+  </div>
+</div>
+{% endblock %}

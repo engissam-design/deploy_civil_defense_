@@ -1,0 +1,66 @@
+{% load static %}
+{% load crispy_forms_tags %}
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="utf-8" />
+    <title>تسجيل الدخول</title>
+
+    <link rel="stylesheet" href="{% static 'css/login.css' %}">
+</head>
+
+<body>
+    <section id="login">
+        <main class="login-page">
+
+            <img src="{% static 'img/Bg.png' %}" class="login-page__bg" alt="Background">
+
+            <div class="login-page__content">
+
+                <div class="branding-container">
+                    <img src="{% static 'img/Login_logo.png' %}" alt="Logo" class="brand-logo">
+                    <h2 class="brand-title">الدفاع المدني الفلسطيني</h2>
+                    <p class="brand-subtitle">نظام الدخول الموحد</p>
+                </div>
+
+                <div class="login-form-container">
+                    <h1 class="login-title">تسجيل الدخول</h1>
+
+                    <form method="post" class="login-form">
+                        {% csrf_token %}
+
+                        <div class="input-group">
+                            <div class="input-wrapper">
+                                {{ form.username|as_crispy_field }}
+                            </div>
+                        </div>
+
+                        <div class="input-group password-group">
+                            <div class="input-wrapper">
+                                {{ form.password|as_crispy_field }}
+                                <img src="{% static 'img/bold.png' %}" class="password-icon" alt="Toggle">
+                            </div>
+
+                            <div>
+                                <input type="checkbox" id="remember_me" name="remember_me">
+                                <label for="remember_me">تذكرني</label>
+                            </div>
+
+                            <div>
+                                <a href="#" class="forgot-password-link">نسيت كلمة المرور؟</a>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="submit-button">تسجيل دخول</button>
+                    </form>
+
+                    <p class="copyright-text">
+                        جميع الحقوق محفوظة © جهاز الدفاع المدني الفلسطيني ٢٠٢٥
+                    </p>
+                </div>
+
+            </div>
+        </main>
+    </section>
+</body>
+</html>

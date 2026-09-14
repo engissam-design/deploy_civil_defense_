@@ -1,0 +1,157 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>تفاصيل مباني المستخدم</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- Bootstrap -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css">
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+
+    <style>
+        body {
+            background-color: #f0f2f5;
+            font-family: 'Cairo', sans-serif;
+        }
+
+        .container {
+            margin-top: 40px;
+            margin-bottom: 40px;
+        }
+
+        #map {
+            width: 100%;
+            height: 450px;
+            border-radius: 10px;
+            margin-bottom: 40px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+        }
+
+        .building-card {
+            background: #fff;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 6px 12px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+
+        .building-card h4 {
+            color: #007bff;
+            font-weight: bold;
+        }
+
+        .table th {
+            background-color: #f0f8ff;
+        }
+
+        .media img, .media video {
+            width: 100%;
+            border-radius: 8px;
+            margin-bottom: 10px;
+        }
+
+        a.scroll-link {
+            display: inline-block;
+            margin-top: 8px;
+            font-size: 14px;
+            color: #007bff;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2 class="text-center text-primary mb-4">📋 تفاصيل مباني المستخدم</h2>
+
+    <div id="map"></div>
+
+    {% if buildings %}
+        {% for building in buildings %}
+            <div class="building-card" id="building-{{ building.id }}">
+                <h4>🏠 {{ building.building_name }}</h4>
+                <table class="table table-bordered mt-3">
+                    <tr><th>اسم المالك</th><td>{{ building.owner_name }}</td></tr>
+                    <tr><th>رقم الهاتف</th><td>{{ building.phone_number }}</td></tr>
+                    <tr><th>عدد الطوابق</th><td>{{ building.floors }}</td></tr>
+                    <tr><th>موقف سيارات</th><td>{{ building.has_parking|yesno:"نعم,لا" }}</td></tr>
+                    <tr><th>العنوان</th><td>{{ building.address }}</td></tr>
+                    <tr><th>الإحداثيات</th><td>{{ building.latitude }}, {{ building.longitude }}</td></tr>
+                    <tr><th>الحالة</th><td>{{ building.status }}</td></tr>
+                    <tr><th>التقييم</th><td>{{ building.evaluation|default:"-" }}</td></tr>
+                </table>
+
+                {% if building.media.all %}
+                    <h5 class="text-secondary mt-4 mb-2">📷 الصور و 🎥 الفيديوهات:</h5>
+                    <div class="row">
+                        {% for media in building.media.all %}
+                            {% if media.image %}
+                                <div class="col-md-4 media">
+                                    <img src="{{ media.image.url }}" alt="صورة">
+                                </div>
+                            {% elif media.video %}
+                                <div class="col-md-6 media">
+                                    <video controls>
+                                        <source src="{{ media.video.url }}" type="video/mp4">
+                                        المتصفح لا يدعم تشغيل الفيديو.
+                                    </video>
+                                </div>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+        {% endfor %}
+    {% else %}
+        <div class="alert alert-info text-center">لا توجد مبانٍ خاصة بك حتى الآن.</div>
+    {% endif %}
+</div>
+
+<!-- Leaflet JS -->
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<script>
+    const data = {{ buildings_json|safe }};
+
+    const map = L.map('map').setView([32.0, 35.2], 8);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
+
+    function getColor(evaluation) {
+        switch (evaluation) {
+            case 'A': return 'green';
+            case 'B': return 'orange';
+            case 'C': return 'red';
+            default: return 'blue';
+        }
+    }
+
+    function scrollToBuilding(id) {
+        const el = document.getElementById(`building-${id}`);
+        if (el) {
+            el.scrollIntoView({ behavior: 'smooth' });
+        }
+    }
+
+    data.forEach(b => {
+        const color = getColor(b.evaluation);
+        L.circleMarker([b.latitude, b.longitude], {
+            color: color,
+            fillColor: color,
+            fillOpacity: 0.7,
+            radius: 9
+        }).addTo(map)
+        .bindPopup(`
+            <strong>${b.building_name}</strong><br>
+            المالك: ${b.owner_name}<br>
+            <a class="scroll-link" onclick="scrollToBuilding(${b.id})">عرض التفاصيل 🔽</a>
+        `);
+    });
+</script>
+
+</body>
+</html>

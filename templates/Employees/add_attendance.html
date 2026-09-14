@@ -1,0 +1,2504 @@
+{% load dict_filters %}
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>إدارة الدوام والاعتمادات</title>
+
+    <link rel="stylesheet"
+          href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700&display=swap">
+
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <style>
+        :root {
+            --primary-color: #2563eb;
+            --primary-hover: #1d4ed8;
+            --primary-light: #eff6ff;
+
+            --success-color: #10b981;
+            --success-bg: #f0fdf4;
+            --success-border: #bbf7d0;
+
+            --warning-color: #f59e0b;
+            --warning-bg: #fffbeb;
+            --warning-border: #fef08a;
+
+            --danger-color: #ef4444;
+            --danger-bg: #fef2f2;
+            --danger-border: #fecaca;
+
+            --info-color: #0ea5e9;
+            --info-bg: #f0f9ff;
+            --info-border: #bae6fd;
+
+            --bg-body: #f8fafc;
+            --card-bg: #ffffff;
+            --border-color: #e2e8f0;
+
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+
+            --radius-lg: 12px;
+            --radius-md: 8px;
+
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+
+            --shadow-md:
+                0 4px 6px -1px rgb(0 0 0 / 0.05),
+                0 2px 4px -2px rgb(0 0 0 / 0.05);
+        }
+
+        * {
+            box-sizing: border-box;
+            font-family: 'Cairo', Tahoma, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            margin: 0;
+            padding: 24px;
+            direction: rtl;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        /* =========================
+           Top Navbar
+        ========================= */
+
+        .top-navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+
+            background: var(--card-bg);
+
+            padding: 12px 20px;
+
+            border-radius: var(--radius-lg);
+
+            box-shadow: var(--shadow-sm);
+
+            border: 1px solid var(--border-color);
+
+            margin-bottom: 20px;
+        }
+
+        .user-badge {
+            margin: 0;
+
+            color: var(--text-main);
+
+            font-weight: 700;
+
+            font-size: 0.95rem;
+
+            display: flex;
+
+            align-items: center;
+
+            gap: 8px;
+        }
+
+        .nav-actions {
+            display: flex;
+
+            align-items: center;
+
+            gap: 15px;
+        }
+
+        /* =========================
+           Notifications
+        ========================= */
+
+        .notification-wrapper {
+            position: relative;
+            z-index: 9999;
+        }
+
+        .notification-btn {
+            background: #f1f5f9;
+
+            border: 1px solid var(--border-color);
+
+            border-radius: 50%;
+
+            width: 40px;
+            height: 40px;
+
+            display: flex;
+
+            align-items: center;
+            justify-content: center;
+
+            cursor: pointer;
+
+            position: relative;
+
+            color: var(--text-main);
+
+            transition: all 0.2s;
+
+            z-index: 10001;
+        }
+
+        .notification-btn:hover {
+            background: var(--primary-light);
+
+            color: var(--primary-color);
+        }
+
+        .notification-badge {
+            position: absolute;
+
+            top: -4px;
+            right: -4px;
+
+            background: var(--danger-color);
+
+            color: white;
+
+            font-size: 0.7rem;
+
+            font-weight: 700;
+
+            border-radius: 10px;
+
+            padding: 2px 6px;
+
+            border: 2px solid #ffffff;
+
+            display: none;
+        }
+
+        .notification-dropdown {
+            position: absolute;
+
+            top: 48px;
+
+            left: 0;
+
+            width: 380px;
+
+            max-width: 90vw;
+
+            background: #ffffff;
+
+            border: 1px solid #e2e8f0;
+
+            border-radius: 12px;
+
+            box-shadow:
+                0 10px 25px rgba(0, 0, 0, 0.12),
+                0 4px 10px rgba(0, 0, 0, 0.08);
+
+            display: none;
+
+            z-index: 99999;
+
+            overflow: hidden;
+        }
+
+        .notification-dropdown.show {
+            display: block !important;
+        }
+
+        .notification-header {
+            padding: 14px 18px;
+
+            background: #f8fafc;
+
+            border-bottom: 1px solid #e2e8f0;
+
+            font-weight: 700;
+
+            font-size: 0.95rem;
+
+            display: flex;
+
+            justify-content: space-between;
+
+            align-items: center;
+        }
+
+        .notification-list {
+            max-height: 350px;
+
+            overflow-y: auto;
+
+            margin: 0;
+
+            padding: 0;
+
+            list-style: none;
+        }
+
+        .notification-item {
+            padding: 14px 18px;
+
+            border-bottom: 1px solid #e2e8f0;
+
+            font-size: 0.85rem;
+
+            cursor: pointer;
+
+            transition: background 0.2s ease;
+        }
+
+        .notification-item:hover {
+            background: #f8fafc;
+        }
+
+        .notification-item.unread {
+            background: #eff6ff;
+
+            border-right: 4px solid #2563eb;
+        }
+
+        .notification-time {
+            display: block;
+
+            margin-top: 5px;
+
+            color: #64748b;
+
+            font-size: 0.72rem;
+        }
+
+        .notification-empty {
+            padding: 25px 15px;
+
+            text-align: center;
+
+            color: #64748b;
+
+            font-size: 0.85rem;
+        }
+
+        /* =========================
+           Logout
+        ========================= */
+
+        .btn-logout {
+            background: #fee2e2;
+
+            color: #dc2626;
+
+            border: 1px solid #fca5a5;
+
+            padding: 6px 14px;
+
+            border-radius: var(--radius-md);
+
+            cursor: pointer;
+
+            font-weight: 600;
+
+            font-size: 0.85rem;
+
+            transition: all 0.2s ease;
+        }
+
+        .btn-logout:hover {
+            background: #dc2626;
+
+            color: white;
+        }
+
+        /* =========================
+           Page Header
+        ========================= */
+
+        .page-header {
+            background: var(--card-bg);
+
+            padding: 20px 24px;
+
+            border-radius: var(--radius-lg);
+
+            box-shadow: var(--shadow-sm);
+
+            margin-bottom: 20px;
+
+            display: flex;
+
+            justify-content: space-between;
+
+            align-items: center;
+
+            flex-wrap: wrap;
+
+            gap: 15px;
+
+            border-right: 5px solid var(--primary-color);
+
+            border-top: 1px solid var(--border-color);
+
+            border-left: 1px solid var(--border-color);
+
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .page-title {
+            margin: 0;
+
+            font-size: 1.35rem;
+
+            font-weight: 700;
+
+            color: var(--text-main);
+        }
+
+        /* =========================
+           Toolbar
+        ========================= */
+
+        .toolbar-card {
+            background: var(--card-bg);
+
+            padding: 20px;
+
+            border-radius: var(--radius-lg);
+
+            box-shadow: var(--shadow-sm);
+
+            border: 1px solid var(--border-color);
+
+            margin-bottom: 20px;
+        }
+
+        .info-note {
+            background: var(--info-bg);
+
+            color: #0369a1;
+
+            padding: 12px 16px;
+
+            border-radius: var(--radius-md);
+
+            font-size: 0.875rem;
+
+            margin-bottom: 16px;
+
+            border: 1px solid var(--info-border);
+
+            border-right: 4px solid var(--info-color);
+
+            display: flex;
+
+            align-items: center;
+
+            gap: 10px;
+        }
+
+        .officer-input-card {
+            background: #f8fafc;
+
+            border: 1px solid var(--primary-light);
+
+            border-right: 4px solid var(--primary-color);
+
+            padding: 14px 18px;
+
+            border-radius: var(--radius-md);
+
+            margin-bottom: 16px;
+
+            display: flex;
+
+            align-items: center;
+
+            gap: 12px;
+
+            flex-wrap: wrap;
+        }
+
+        .officer-input-card label {
+            font-weight: 700;
+
+            font-size: 0.9rem;
+
+            color: var(--text-main);
+
+            white-space: nowrap;
+
+            display: flex;
+
+            align-items: center;
+
+            gap: 8px;
+        }
+
+        .officer-input-card input {
+            flex: 1;
+
+            min-width: 250px;
+
+            padding: 8px 12px;
+
+            border-radius: var(--radius-md);
+
+            border: 1px solid var(--border-color);
+
+            font-size: 0.9rem;
+
+            font-weight: 600;
+        }
+
+        .action-buttons {
+            display: flex;
+
+            gap: 12px;
+
+            align-items: center;
+
+            flex-wrap: wrap;
+        }
+
+        /* =========================
+           Filter
+        ========================= */
+
+        .filter-container {
+            display: flex;
+
+            align-items: center;
+
+            gap: 8px;
+
+            background: #f1f5f9;
+
+            padding: 6px 12px;
+
+            border-radius: var(--radius-md);
+
+            border: 1px solid var(--border-color);
+        }
+
+        .filter-label {
+            font-size: 0.85rem;
+
+            font-weight: 600;
+
+            color: var(--text-muted);
+
+            white-space: nowrap;
+        }
+
+        .filter-select {
+            border: none !important;
+
+            background: transparent !important;
+
+            font-weight: 700;
+
+            color: var(--text-main);
+
+            padding: 2px 4px !important;
+
+            cursor: pointer;
+
+            outline: none !important;
+
+            width: auto !important;
+        }
+
+        /* =========================
+           Buttons
+        ========================= */
+
+        .btn {
+            display: inline-flex;
+
+            align-items: center;
+
+            justify-content: center;
+
+            gap: 8px;
+
+            padding: 9px 18px;
+
+            border-radius: var(--radius-md);
+
+            font-size: 0.875rem;
+
+            font-weight: 600;
+
+            border: none;
+
+            cursor: pointer;
+
+            transition: all 0.2s ease;
+
+            text-decoration: none;
+        }
+
+        .btn-primary {
+            background: var(--primary-color);
+
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-hover);
+        }
+
+        .btn-success {
+            background: var(--success-color);
+
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #059669;
+        }
+
+        .btn-outline {
+            background: white;
+
+            border: 1px solid var(--border-color);
+
+            color: var(--text-main);
+        }
+
+        .btn-outline:hover {
+            background: #f8fafc;
+
+            border-color: #cbd5e1;
+        }
+
+        .btn:disabled {
+            background: #cbd5e1 !important;
+
+            color: #94a3b8 !important;
+
+            cursor: not-allowed;
+
+            border: none !important;
+        }
+
+        /* =========================
+           Table
+        ========================= */
+
+        .table-container {
+            background: var(--card-bg);
+
+            border-radius: var(--radius-lg);
+
+            box-shadow: var(--shadow-sm);
+
+            overflow: hidden;
+
+            border: 1px solid var(--border-color);
+
+            margin-bottom: 24px;
+        }
+
+        table {
+            width: 100%;
+
+            border-collapse: collapse;
+
+            text-align: right;
+        }
+
+        th {
+            background: #f8fafc;
+
+            color: var(--text-muted);
+
+            padding: 12px 16px;
+
+            font-size: 0.85rem;
+
+            font-weight: 700;
+
+            border-bottom: 1px solid var(--border-color);
+
+            text-align: center;
+        }
+
+        td {
+            padding: 10px 16px;
+
+            border-bottom: 1px solid var(--border-color);
+
+            font-size: 0.875rem;
+
+            text-align: center;
+
+            vertical-align: middle;
+        }
+
+        tr.emp-row:hover {
+            background-color: #f8fafc;
+        }
+
+        select,
+        input[type="text"] {
+            width: 100%;
+
+            padding: 7px 10px;
+
+            border-radius: var(--radius-md);
+
+            border: 1px solid var(--border-color);
+
+            background-color: white;
+
+            font-size: 0.85rem;
+
+            color: var(--text-main);
+
+            transition: border-color 0.15s ease;
+
+            outline: none;
+        }
+
+        select:focus,
+        input[type="text"]:focus {
+            border-color: var(--primary-color);
+
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        select:disabled,
+        input:disabled {
+            background-color: #f1f5f9;
+
+            color: #94a3b8;
+
+            cursor: not-allowed;
+
+            border-color: #e2e8f0;
+        }
+
+        .emp-name {
+            font-weight: 700;
+
+            color: var(--text-main);
+        }
+
+        .emp-rank {
+            color: var(--text-muted);
+
+            font-size: 0.8rem;
+
+            background: #f1f5f9;
+
+            padding: 2px 8px;
+
+            border-radius: 12px;
+        }
+
+        /* =========================
+           Approvals
+        ========================= */
+
+        .approvals-section {
+            display: flex;
+
+            flex-direction: column;
+
+            gap: 16px;
+        }
+
+        .approval-card {
+            background: var(--card-bg);
+
+            border-radius: var(--radius-lg);
+
+            padding: 20px;
+
+            border: 1px solid var(--border-color);
+
+            box-shadow: var(--shadow-sm);
+
+            position: relative;
+
+            overflow: hidden;
+        }
+
+        .approval-card.card-active {
+            border-right: 5px solid var(--info-color);
+        }
+
+        .approval-card.card-revoked {
+            border-right: 5px solid var(--warning-color);
+
+            background-color: var(--warning-bg);
+
+            border-color: var(--warning-border);
+        }
+
+        .approval-card.card-action {
+            border-right: 5px solid var(--success-color);
+
+            background: linear-gradient(
+                to left,
+                #f0fdf4,
+                #ffffff
+            );
+        }
+
+        .approval-card-title {
+            font-weight: 700;
+
+            font-size: 0.95rem;
+
+            margin-bottom: 14px;
+
+            display: flex;
+
+            align-items: center;
+
+            gap: 10px;
+
+            color: var(--text-main);
+        }
+
+        .approval-grid {
+            display: grid;
+
+            grid-template-columns:
+                repeat(
+                    auto-fill,
+                    minmax(280px, 1fr)
+                );
+
+            gap: 12px;
+        }
+
+        .approval-item {
+            background: #ffffff;
+
+            padding: 12px 14px;
+
+            border-radius: var(--radius-md);
+
+            font-size: 0.85rem;
+
+            border: 1px solid var(--border-color);
+
+            display: flex;
+
+            align-items: flex-start;
+
+            gap: 12px;
+
+            box-shadow: var(--shadow-sm);
+        }
+
+        .approval-item-icon {
+            font-size: 1.1rem;
+
+            margin-top: 2px;
+        }
+
+        .approval-item-content {
+            display: flex;
+
+            flex-direction: column;
+
+            gap: 4px;
+        }
+
+        /* =========================
+           Alerts
+        ========================= */
+
+        .alert-box {
+            padding: 14px 18px;
+
+            border-radius: var(--radius-lg);
+
+            font-size: 0.9rem;
+
+            display: flex;
+
+            align-items: center;
+
+            gap: 12px;
+
+            font-weight: 600;
+
+            box-shadow: var(--shadow-sm);
+        }
+
+        .alert-success {
+            background: var(--success-bg);
+
+            color: #15803d;
+
+            border: 1px solid var(--success-border);
+        }
+
+        .alert-warning {
+            background: var(--warning-bg);
+
+            color: #b45309;
+
+            border: 1px solid var(--warning-border);
+        }
+
+        .btn-approve-lg {
+            padding: 12px 24px;
+
+            font-size: 0.95rem;
+
+            box-shadow:
+                0 2px 4px
+                rgba(16, 185, 129, 0.2);
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <!-- =========================
+         Top Navbar
+    ========================== -->
+
+    <div class="top-navbar">
+
+        <h6 class="user-badge">
+
+            <i class="fa-solid fa-circle-user"
+               style="
+               color: var(--primary-color);
+               font-size: 1.2rem;
+               ">
+            </i>
+
+            مرحباً،
+            {{ request.user.get_full_name|default:request.user.username }}
+
+        </h6>
+
+
+        <div class="nav-actions">
+
+            <!-- Notifications -->
+
+            <div class="notification-wrapper">
+
+                <button type="button"
+                        class="notification-btn"
+                        onclick="toggleNotifications(event)">
+
+                    <i class="fa-solid fa-bell"></i>
+
+                    <span
+                        class="notification-badge"
+                        id="notificationCount">
+                        0
+                    </span>
+
+                </button>
+
+
+                <div
+                    class="notification-dropdown"
+                    id="notificationDropdown">
+
+                    <div class="notification-header">
+
+                        <span>
+                            <i class="fa-solid fa-bell"></i>
+                            الإشعارات اللحظية
+                        </span>
+
+                    </div>
+
+
+                    <ul
+                        class="notification-list"
+                        id="notificationList">
+
+                        <li
+                            class="notification-item text-center text-muted"
+                            id="emptyNotificationMsg">
+
+                            لا توجد إشعارات جديدة حالياً
+
+                        </li>
+
+                    </ul>
+
+                </div>
+
+            </div>
+
+
+            <!-- Logout -->
+
+            <form
+                method="post"
+                action="{% url 'logout' %}"
+                style="margin:0;">
+
+                {% csrf_token %}
+
+                <button
+                    type="submit"
+                    class="btn-logout">
+
+                    <i class="fa-solid fa-right-from-bracket"></i>
+
+                    تسجيل الخروج
+
+                </button>
+
+            </form>
+
+        </div>
+
+    </div>
+
+
+    <!-- =========================
+         Page Header
+    ========================== -->
+
+    <header class="page-header">
+
+        <div>
+
+            <h1 class="page-title">
+                دوام المرتب : {{ operation.center }}
+            </h1>
+
+        </div>
+
+
+        <div>
+
+            {% if last_update %}
+
+                <span
+                    style="
+                    font-size: 0.8rem;
+                    color: var(--text-muted);
+                    background: #f1f5f9;
+                    padding: 6px 12px;
+                    border-radius: 20px;
+                    border: 1px solid var(--border-color);
+                    ">
+
+                    <i class="fa-regular fa-clock"></i>
+
+                    آخر تحديث:
+                    {{ last_update|date:"Y-m-d H:i" }}
+
+
+                    {% if last_duty_officer %}
+
+                        |
+
+                        <i
+                            class="fa-solid fa-user-shield"
+                            style="color: var(--primary-color);">
+                        </i>
+
+                        بواسطة:
+                        {{ last_duty_officer }}
+
+                    {% endif %}
+
+                </span>
+
+            {% endif %}
+
+        </div>
+
+    </header>
+
+
+    <!-- =========================
+         Attendance Form
+    ========================== -->
+
+    <form
+        method="post"
+        id="attendanceForm"
+        onsubmit="return validateAndSubmit(event)">
+
+        {% csrf_token %}
+
+
+        <div class="toolbar-card">
+
+            <div class="info-note">
+
+                <i
+                    class="fa-solid fa-circle-info"
+                    style="font-size: 1.1rem;">
+                </i>
+
+                <span>
+
+                    <strong>تنبيه:</strong>
+
+                    تم إدراج المرتب بحالة
+                    (مداوم) تلقائياً،
+
+                    يمكنك الضغط على
+                    <strong>تعديل البيانات</strong>
+
+                    لتغيير الحالة أو كتابة اسم الضابط المناوب عند الحاجة.
+
+                </span>
+
+            </div>
+
+
+            {% if is_duty_officer and can_edit_attendance %}
+
+            <div class="officer-input-card mb-4">
+
+                <label for="duty_officer_name">
+
+                    <i
+                        class="fa-solid fa-user-shield"
+                        style="
+                        color: var(--primary-color);
+                        font-size: 1.1rem;
+                        ">
+                    </i>
+
+                    اسم الضابط المناوب القائم بالتعديل:
+
+                </label>
+
+
+                <input
+                    type="text"
+                    name="duty_officer_name"
+                    id="duty_officer_name"
+                    value="{{ last_duty_officer|default:'' }}"
+                    placeholder="اكتب الرتبة والاسم الرباعي للضابط المناوب..."
+                    disabled
+                    >
+
+            </div>
+
+            {% endif %}
+
+
+            <div class="action-buttons">
+
+
+                {% if can_edit_attendance %}
+
+                    <button
+                        type="button"
+                        class="btn btn-primary"
+                        onclick="enableEditing()"
+                        id="edit-btn">
+
+                        <i class="fa-solid fa-pen-to-square"></i>
+
+                        تعديل البيانات
+
+                    </button>
+
+
+                    <button
+                        type="submit"
+                        id="save-btn"
+                        class="btn btn-success"
+                        disabled>
+
+                        <i class="fa-solid fa-floppy-disk"></i>
+
+                        حفظ التغييرات
+
+                    </button>
+
+                {% endif %}
+
+
+                <div class="filter-container">
+
+                    <i
+                        class="fa-solid fa-filter"
+                        style="color: var(--text-muted);">
+                    </i>
+
+                    <span class="filter-label">
+                        تصفية حسب الحالة:
+                    </span>
+
+
+                    <select
+                        id="status-filter"
+                        class="filter-select"
+                        onchange="applyStatusFilter()">
+
+                        <option value="all">
+                            الكل (جميع المرتب)
+                        </option>
+
+                        <option value="present">
+                            🟢 مداوم
+                        </option>
+
+                        <option value="early_leave">
+                            🟡 مغادرة
+                        </option>
+
+                        <option value="vacation">
+                            🟠 إجازة
+                        </option>
+
+                        <option value="mission">
+                            🔵 مهمة رسمية
+                        </option>
+
+                    </select>
+
+                </div>
+
+
+                <a
+                    href="{% url 'print_attendance_pdf' operation.id %}"
+                    id="print-pdf-btn"
+                    target="_blank"
+                    class="btn btn-outline"
+                    style="margin-right: auto;">
+
+                    <i class="fa-solid fa-print"></i>
+
+                    طباعة تقرير PDF
+
+                </a>
+
+            </div>
+
+        </div>
+
+
+        <!-- =========================
+             Attendance Table
+        ========================== -->
+
+        <div class="table-container">
+
+            <table>
+
+                <thead>
+
+                    <tr>
+
+                        <th style="width: 15%;">
+                            الرتبة
+                        </th>
+
+                        <th style="width: 25%;">
+                            العنصر
+                        </th>
+
+                        <th style="width: 20%;">
+                            حالة الدوام
+                        </th>
+
+                        <th style="width: 20%;">
+                            السبب (في حال الإجازة)
+                        </th>
+
+                        <th style="width: 20%;">
+                            ملاحظات
+                        </th>
+
+                    </tr>
+
+                </thead>
+
+
+                <tbody>
+
+                    {% for emp in employees %}
+
+                    {% with record=records|get_item:emp.id %}
+
+                    <tr
+                        class="emp-row"
+                        data-emp-id="{{ emp.id }}">
+
+                        <td>
+
+                            <span class="emp-rank">
+                                {{ emp.rank }}
+                            </span>
+
+                        </td>
+
+
+                        <td>
+
+                            <span class="emp-name">
+                                {{ emp.name }}
+                            </span>
+
+                        </td>
+
+
+                        <td>
+
+                            <select
+                                name="status_{{ emp.id }}"
+                                id="status_{{ emp.id }}"
+                                onchange="toggleFields({{ emp.id }}); applyStatusFilter();"
+                                disabled>
+
+                                <option
+                                    value="present"
+                                    {% if record.status == 'present' or not record %}
+                                    selected
+                                    {% endif %}>
+
+                                    🟢 مداوم
+
+                                </option>
+
+
+                                <option
+                                    value="early_leave"
+                                    {% if record.status == 'early_leave' %}
+                                    selected
+                                    {% endif %}>
+
+                                    🟡 مغادرة
+
+                                </option>
+
+
+                                <option
+                                    value="vacation"
+                                    {% if record.status == 'vacation' %}
+                                    selected
+                                    {% endif %}>
+
+                                    🟠 إجازة
+
+                                </option>
+
+
+                                <option
+                                    value="mission"
+                                    {% if record.status == 'mission' %}
+                                    selected
+                                    {% endif %}>
+
+                                    🔵 مهمة رسمية
+
+                                </option>
+
+                            </select>
+
+                        </td>
+
+
+                        <td>
+
+                            <select
+                                name="reason_{{ emp.id }}"
+                                id="reason_{{ emp.id }}"
+                                {% if record.status != 'vacation' %}
+                                disabled
+                                {% endif %}>
+
+                                <option value="">
+                                    اختر السبب...
+                                </option>
+
+                                <option
+                                    value="sick"
+                                    {% if record.leave_reason == 'sick' %}
+                                    selected
+                                    {% endif %}>
+
+                                    مرض
+
+                                </option>
+
+                                <option
+                                    value="travel"
+                                    {% if record.leave_reason == 'travel' %}
+                                    selected
+                                    {% endif %}>
+
+                                    سفر
+
+                                </option>
+
+                                <option
+                                    value="other"
+                                    {% if record.leave_reason == 'other' %}
+                                    selected
+                                    {% endif %}>
+
+                                    غير ذلك
+
+                                </option>
+
+                            </select>
+
+                        </td>
+
+
+                        <td>
+
+                            <input
+                                type="text"
+                                name="note_{{ emp.id }}"
+                                value="{{ record.notes|default:'' }}"
+                                placeholder="إضافة ملاحظة..."
+                                disabled>
+
+                        </td>
+
+                    </tr>
+
+                    {% endwith %}
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </form>
+
+
+    <!-- =========================
+         Approvals
+    ========================== -->
+
+    <div class="approvals-section">
+
+
+        {% if all_approvals %}
+
+        <div class="approval-card card-active">
+
+            <div class="approval-card-title">
+
+                <i
+                    class="fa-solid fa-file-circle-check"
+                    style="
+                    color: var(--info-color);
+                    font-size: 1.1rem;
+                    ">
+                </i>
+
+                <span>
+                    حالة الاعتماد النشط لليوم
+                    (إدارة المديرية):
+                </span>
+
+            </div>
+
+
+            <div class="approval-grid">
+
+                {% for app in all_approvals %}
+
+                <div class="approval-item">
+
+                    <i
+                        class="fa-solid fa-circle-check approval-item-icon"
+                        style="color: var(--success-color);">
+                    </i>
+
+
+                    <div class="approval-item-content">
+
+                        <span
+                            style="
+                            font-size: 0.85rem;
+                            color: var(--text-main);
+                            ">
+
+                            {{ app.approved_by.get_full_name|default:app.approved_by.username }}
+
+                            <br>
+
+                            <i class="fa-regular fa-clock"></i>
+
+                            {{ app.approved_at|date:"Y-m-d H:i" }}
+
+                        </span>
+
+                    </div>
+
+                </div>
+
+                {% endfor %}
+
+            </div>
+
+        </div>
+
+        {% endif %}
+
+
+        {% if revoked_approvals %}
+
+        <div
+            class="approval-card card-revoked"
+            style="padding: 8px 12px;">
+
+            <div
+                class="approval-card-title"
+                style="
+                color: #b45309;
+                font-size: 0.825rem;
+                margin-bottom: 10px;
+                ">
+
+                <i
+                    class="fa-solid fa-triangle-exclamation"
+                    style="
+                    color: var(--warning-color);
+                    font-size: 0.95rem;
+                    ">
+                </i>
+
+                <span>
+                    تنبيه: تم تعديل البيانات بعد اعتماد سابق لليوم
+                    (سجل الاعتمادات الملغاة):
+                </span>
+
+            </div>
+
+
+            <div
+                class="approval-grid"
+                style="
+                grid-template-columns:
+                repeat(
+                    auto-fill,
+                    minmax(230px, 1fr)
+                );
+                gap: 8px;
+                ">
+
+                {% for app in revoked_approvals %}
+
+                <div
+                    class="approval-item"
+                    style="
+                    border-color: #fde68a;
+                    padding: 8px 10px;
+                    gap: 8px;
+                    ">
+
+                    <i
+                        class="fa-solid fa-ban approval-item-icon"
+                        style="
+                        color: var(--danger-color);
+                        font-size: 0.875rem;
+                        margin-top: 1px;
+                        ">
+                    </i>
+
+
+                    <div
+                        class="approval-item-content"
+                        style="gap: 2px;">
+
+                        <span
+                            class="approval-item-user"
+                            style="font-size: 0.775rem;">
+
+                            اعتماد سابق:
+
+                        </span>
+
+
+                        <span
+                            style="
+                            font-size: 0.775rem;
+                            color: var(--text-main);
+                            ">
+
+                            {{ app.approved_by.get_full_name|default:app.approved_by.username }}
+
+                        </span>
+
+
+                        <div
+                            class="approval-item-meta"
+                            style="font-size: 0.7rem;">
+
+                            <i class="fa-regular fa-clock"></i>
+
+                            الاعتماد:
+                            {{ app.approved_at|date:"Y-m-d H:i" }}
+
+                        </div>
+
+
+                        <div
+                            class="approval-item-meta"
+                            style="
+                            font-size: 0.7rem;
+                            color: var(--danger-color);
+                            font-weight: 700;
+                            ">
+
+                            <i class="fa-solid fa-xmark"></i>
+
+                            تم التعديل عليه:
+                            {{ app.revoked_at|date:"Y-m-d H:i" }}
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+                {% endfor %}
+
+            </div>
+
+        </div>
+
+        {% endif %}
+
+
+        {% if can_approve_attendance %}
+
+        <div class="approval-card card-action">
+
+            <div class="approval-card-title">
+
+                <i
+                    class="fa-solid fa-file-signature"
+                    style="
+                    color: var(--success-color);
+                    font-size: 1.1rem;
+                    ">
+                </i>
+
+                <span>
+                    اعتماد دوام اليوم
+                    (مدير مديرية / النائب)
+                </span>
+
+            </div>
+
+
+            <form method="post" style="margin: 0;">
+
+                {% csrf_token %}
+
+                <button
+                    type="submit"
+                    name="action"
+                    value="approve"
+                    class="btn btn-success btn-approve-lg">
+
+                    <i class="fa-solid fa-check-double"></i>
+
+                    اعتماد الدوام الآن
+
+                </button>
+
+            </form>
+
+        </div>
+
+        {% else %}
+
+            {% if not can_approve_attendance_perm %}
+
+            <div class="alert-box alert-warning">
+
+                <i
+                    class="fa-solid fa-triangle-exclamation"
+                    style="font-size: 1.2rem;">
+                </i>
+
+                <span>
+                    اعتماد الدوام محصور بمديرية المحافظة
+                    (مدير المديرية / نائب مدير المديرية).
+                </span>
+
+            </div>
+
+            {% elif center_approval %}
+
+            <div class="alert-box alert-success">
+
+                <i
+                    class="fa-solid fa-circle-check"
+                    style="font-size: 1.2rem;">
+                </i>
+
+                <span>
+                    تم اعتماد الدوام لليوم بنجاح
+                    من قبل إدارة المديرية.
+                </span>
+
+            </div>
+
+            {% endif %}
+
+        {% endif %}
+
+    </div>
+
+</div>
+
+
+<!-- =========================================================
+     Attendance JavaScript
+========================================================= -->
+
+<script>
+
+let initialData = {};
+
+
+window.onload = function() {
+
+    const form =
+        document.getElementById(
+            'attendanceForm'
+        );
+
+    if (!form) {
+        return;
+    }
+
+    const formData =
+        new FormData(form);
+
+    for (
+        let [key, value]
+        of formData.entries()
+    ) {
+
+        initialData[key] = value;
+
+    }
+
+};
+
+
+function enableEditing() {
+
+    document
+        .querySelectorAll(
+            '#attendanceForm select, #attendanceForm input'
+        )
+        .forEach(
+            el => el.disabled = false
+        );
+
+
+    const officerInput =
+        document.getElementById(
+            'duty_officer_name'
+        );
+
+
+    if (officerInput) {
+
+        officerInput.disabled = false;
+
+        officerInput.focus();
+
+    }
+
+
+    const saveBtn =
+        document.getElementById(
+            'save-btn'
+        );
+
+
+    if (saveBtn) {
+
+        saveBtn.disabled = false;
+
+    }
+
+
+    const editBtn =
+        document.getElementById(
+            'edit-btn'
+        );
+
+
+    if (editBtn) {
+
+        editBtn.style.display = 'none';
+
+    }
+
+
+    {% for emp in employees %}
+
+        toggleFields({{ emp.id }});
+
+    {% endfor %}
+
+}
+
+
+function applyStatusFilter() {
+
+    const selectedFilter =
+        document.getElementById(
+            'status-filter'
+        ).value;
+
+
+    const rows =
+        document.querySelectorAll(
+            '.emp-row'
+        );
+
+
+    rows.forEach(
+        row => {
+
+            const empId =
+                row.getAttribute(
+                    'data-emp-id'
+                );
+
+
+            const statusElement =
+                document.getElementById(
+                    'status_' + empId
+                );
+
+
+            if (!statusElement) {
+                return;
+            }
+
+
+            const currentStatus =
+                statusElement.value;
+
+
+            if (
+                selectedFilter === 'all' ||
+                currentStatus === selectedFilter
+            ) {
+
+                row.style.display = '';
+
+            } else {
+
+                row.style.display = 'none';
+
+            }
+
+        }
+    );
+
+
+    const printBtn =
+        document.getElementById(
+            'print-pdf-btn'
+        );
+
+
+    const baseUrl =
+        "{% url 'print_attendance_pdf' operation.id %}";
+
+
+    if (!printBtn) {
+        return;
+    }
+
+
+    if (selectedFilter !== 'all') {
+
+        printBtn.href =
+            `${baseUrl}?status=${selectedFilter}`;
+
+    } else {
+
+        printBtn.href =
+            baseUrl;
+
+    }
+
+}
+
+
+function toggleFields(id) {
+
+    const status =
+        document.getElementById(
+            'status_' + id
+        ).value;
+
+
+    const reason =
+        document.getElementById(
+            'reason_' + id
+        );
+
+
+    const saveBtn =
+        document.getElementById(
+            'save-btn'
+        );
+
+
+    const isEditing =
+        saveBtn &&
+        !saveBtn.disabled;
+
+
+    if (
+        status === 'vacation' &&
+        isEditing
+    ) {
+
+        reason.disabled = false;
+
+    } else {
+
+        reason.disabled = true;
+
+
+        if (
+            status !== 'vacation'
+        ) {
+
+            reason.value = "";
+
+        }
+
+    }
+
+}
+
+function validateAndSubmit(event) {
+
+    const currentData =
+        new FormData(
+            document.getElementById(
+                'attendanceForm'
+            )
+        );
+
+    let hasChanges = false;
+
+    for (
+        let [key, value]
+        of currentData.entries()
+    ) {
+
+        if (
+            initialData[key] !== value
+        ) {
+
+            hasChanges = true;
+
+            break;
+        }
+    }
+
+    if (!hasChanges) {
+
+        event.preventDefault();
+
+        Swal.fire({
+
+            title: 'تنبيه',
+
+            text:
+                'لم تقم بإجراء أي تعديلات!',
+
+            icon: 'info',
+
+            confirmButtonText: 'حسناً',
+
+            confirmButtonColor: '#2563eb'
+
+        });
+
+        return false;
+    }
+
+    return true;
+}
+
+{% if messages %}
+
+    {% for message in messages %}
+
+        Swal.fire({
+
+            title:
+                '{{ message.tags|title }}',
+
+            text:
+                '{{ message }}',
+
+            icon:
+                '{{ message.tags }}',
+
+            timer: 3000,
+
+            showConfirmButton: false
+
+        });
+
+    {% endfor %}
+
+{% endif %}
+
+</script>
+
+
+<!-- =========================================================
+     Notifications WebSocket
+========================================================= -->
+
+<script>
+
+let socket = null;
+
+let reconnectTimer = null;
+
+
+/* =========================================================
+   فتح وإغلاق قائمة الإشعارات
+========================================================= */
+
+function toggleNotifications(event) {
+
+    if (event) {
+
+        event.stopPropagation();
+
+    }
+
+
+    const dropdown =
+        document.getElementById(
+            'notificationDropdown'
+        );
+
+
+    if (!dropdown) {
+
+        console.error(
+            '❌ notificationDropdown غير موجود'
+        );
+
+        return;
+
+    }
+
+
+    dropdown.classList.toggle(
+        'show'
+    );
+
+
+    console.log(
+        '🔔 حالة قائمة الإشعارات:',
+        dropdown.classList.contains('show')
+    );
+
+}
+
+
+/* =========================================================
+   منع إغلاق القائمة عند الضغط داخلها
+========================================================= */
+
+document.addEventListener(
+    'DOMContentLoaded',
+    function() {
+
+        const wrapper =
+            document.querySelector(
+                '.notification-wrapper'
+            );
+
+
+        const dropdown =
+            document.getElementById(
+                'notificationDropdown'
+            );
+
+
+        if (wrapper) {
+
+            wrapper.addEventListener(
+                'click',
+                function(event) {
+
+                    event.stopPropagation();
+
+                }
+            );
+
+        }
+
+
+        document.addEventListener(
+            'click',
+            function() {
+
+                if (dropdown) {
+
+                    dropdown.classList.remove(
+                        'show'
+                    );
+
+                }
+
+            }
+        );
+
+    }
+);
+
+
+/* =========================================================
+   تحديث عداد الإشعارات
+========================================================= */
+
+function updateNotificationCount(count) {
+
+    const badge =
+        document.getElementById(
+            'notificationCount'
+        );
+
+
+    if (!badge) {
+
+        return;
+
+    }
+
+
+    count =
+        parseInt(count) || 0;
+
+
+    if (count > 0) {
+
+        badge.textContent =
+            count;
+
+        badge.style.display =
+            'inline-block';
+
+    } else {
+
+        badge.textContent =
+            '';
+
+        badge.style.display =
+            'none';
+
+    }
+
+}
+
+
+/* =========================================================
+   إضافة إشعار إلى القائمة
+========================================================= */
+
+function addNotificationToList(data) {
+
+    const list =
+        document.getElementById(
+            'notificationList'
+        );
+
+
+    if (!list) {
+
+        console.error(
+            '❌ notificationList غير موجود'
+        );
+
+        return;
+
+    }
+
+
+    const emptyMessage =
+        document.getElementById(
+            'emptyNotificationMsg'
+        );
+
+
+    if (emptyMessage) {
+
+        emptyMessage.remove();
+
+    }
+
+
+    /* منع تكرار نفس الإشعار */
+
+    if (data.id) {
+
+        const existing =
+            list.querySelector(
+                `[data-notification-id="${data.id}"]`
+            );
+
+
+        if (existing) {
+
+            return;
+
+        }
+
+    }
+
+
+    /* إنشاء عنصر الإشعار */
+
+    const item =
+        document.createElement(
+            'li'
+        );
+
+
+    item.className =
+        'notification-item unread';
+
+
+    item.dataset.notificationId =
+        data.id || '';
+
+
+    /* نص الإشعار */
+
+    const messageDiv =
+        document.createElement(
+            'div'
+        );
+
+
+    messageDiv.textContent =
+        data.message || 'إشعار جديد';
+
+
+    /* الوقت */
+
+    const time =
+        document.createElement(
+            'small'
+        );
+
+
+    time.className =
+        'notification-time';
+
+
+    time.textContent =
+        data.created_at || '';
+
+
+    item.appendChild(
+        messageDiv
+    );
+
+
+    item.appendChild(
+        time
+    );
+
+
+    /* وضع الإشعار في أول القائمة */
+
+    list.insertBefore(
+        item,
+        list.firstChild
+    );
+
+
+    /* عند الضغط على الإشعار يتم تعليمه كمقروء */
+
+    item.addEventListener(
+        'click',
+        function(event) {
+
+            event.stopPropagation();
+
+
+            const notificationId =
+                this.dataset.notificationId;
+
+
+            if (
+                notificationId &&
+                socket &&
+                socket.readyState ===
+                    WebSocket.OPEN
+            ) {
+
+                socket.send(
+                    JSON.stringify({
+
+                        action:
+                            'mark_as_read',
+
+                        notification_id:
+                            notificationId
+
+                    })
+                );
+
+            }
+
+
+            this.classList.remove(
+                'unread'
+            );
+
+        }
+    );
+
+}
+
+
+/* =========================================================
+   الاتصال بـ WebSocket
+========================================================= */
+
+function connectNotificationSocket() {
+
+    if (
+        socket &&
+        (
+            socket.readyState ===
+                WebSocket.OPEN ||
+
+            socket.readyState ===
+                WebSocket.CONNECTING
+        )
+    ) {
+
+        return;
+
+    }
+
+
+    const protocol =
+        window.location.protocol === 'https:'
+            ? 'wss://'
+            : 'ws://';
+
+
+    const wsUrl =
+        protocol +
+        window.location.host +
+        '/ws/notifications/';
+
+
+    console.log(
+        '🔌 الاتصال بـ WebSocket:',
+        wsUrl
+    );
+
+
+    socket =
+        new WebSocket(
+            wsUrl
+        );
+
+
+    /* ==============================
+       نجاح الاتصال
+    ============================== */
+
+    socket.onopen =
+        function() {
+
+            console.log(
+                '✅ WebSocket connected'
+            );
+
+        };
+
+
+    /* ==============================
+       استقبال البيانات
+    ============================== */
+
+    socket.onmessage =
+        function(event) {
+
+            try {
+
+                const data =
+                    JSON.parse(
+                        event.data
+                    );
+
+
+                console.log(
+                    '🔔 WebSocket:',
+                    data
+                );
+
+
+                /* تحديث العدد */
+
+                if (
+                    data.type ===
+                    'unread_count_update'
+                ) {
+
+                    updateNotificationCount(
+                        data.unread_count
+                    );
+
+                    return;
+
+                }
+
+
+                /* إشعار جديد */
+
+                if (
+                    data.type ===
+                    'new_notification'
+                ) {
+
+                    addNotificationToList(
+                        data
+                    );
+
+
+                    updateNotificationCount(
+                        data.unread_count
+                    );
+
+
+                    /*
+                     * فتح القائمة تلقائياً
+                     * عند وصول إشعار جديد
+                     */
+
+                    const dropdown =
+                        document.getElementById(
+                            'notificationDropdown'
+                        );
+
+
+                    if (dropdown) {
+
+                        dropdown.classList.add(
+                            'show'
+                        );
+
+                    }
+
+                }
+
+
+            } catch (error) {
+
+                console.error(
+                    '❌ خطأ في قراءة WebSocket:',
+                    error
+                );
+
+            }
+
+        };
+
+
+    /* ==============================
+       خطأ
+    ============================== */
+
+    socket.onerror =
+        function(error) {
+
+            console.error(
+                '❌ WebSocket error:',
+                error
+            );
+
+        };
+
+
+    /* ==============================
+       إغلاق الاتصال
+    ============================== */
+
+    socket.onclose =
+        function() {
+
+            console.warn(
+                '⚠️ WebSocket disconnected'
+            );
+
+
+            clearTimeout(
+                reconnectTimer
+            );
+
+
+            reconnectTimer =
+                setTimeout(
+                    function() {
+
+                        connectNotificationSocket();
+
+                    },
+                    3000
+                );
+
+        };
+
+}
+
+
+/* =========================================================
+   تشغيل WebSocket عند تحميل الصفحة
+========================================================= */
+
+document.addEventListener(
+    'DOMContentLoaded',
+    function() {
+
+        connectNotificationSocket();
+
+    }
+);
+
+</script>
+
+</body>
+</html>

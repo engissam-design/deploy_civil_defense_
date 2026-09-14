@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<title>العناصر في {{ operation.center }}</title>
+<style>
+body { font-family: Tahoma, sans-serif; background: #f4f6f8; padding: 20px; color: #333; }
+.card { background: #fff; max-width: 1000px; margin: auto; padding: 30px; border-radius: 15px; box-shadow: 0 6px 20px rgba(0,0,0,0.1); }
+h1 { text-align: center; color: #2c3e50; }
+.status-night {
+    color: #8e44ad;
+    font-weight: bold;
+}
+
+.stats { text-align: center; margin: 20px 0; font-size: 18px; color: #555; }
+table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 16px; }
+th, td { padding: 12px; border: 1px solid #ddd; text-align: center; }
+th { background: #3498db; color: #fff; }
+tr:nth-child(even) { background: #f9f9f9; }
+.status-present { color: #27ae60; font-weight: bold; }
+.status-leave { color: #e67e22; font-weight: bold; }
+.status-departure { color: #e74c3c; font-weight: bold; }
+a.btn-detail { padding: 6px 12px; background: #3498db; color: #fff; border-radius: 6px; text-decoration: none; font-size: 14px; }
+a.btn-detail:hover { background: #2980b9; }
+</style>
+</head>
+<body>
+<div class="card">
+
+
+<h1>العناصر اليوم في {{ operation.center }}</h1>
+
+<div class="stats">
+كل المرتب: {{ total_employees }} | المداومون اليوم: {{ working_today_count }}
+</div>
+<table><a href="{% url 'Employees/employees_by_operation' %}?operation={{ operation.id }}"
+   style="display:inline-block;margin-bottom:15px;padding:10px 18px;background:#7f8c8d;color:white;text-decoration:none;border-radius:8px;">
+رجوع</a>
+
+    <thead>
+        <tr>
+            <th>#</th> <th>الاسم</th>
+            <th>رقم الجوال</th>
+            <th>الحالة اليوم</th>
+            <th>التفاصيل</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for item in working_today %}
+        <tr>
+            <td>{{ forloop.counter }}</td> <td>{{ item.employee.name }}</td>
+            <td>{{ item.employee.mobile }}</td>
+         <td class="
+{% if item.status == 'مداوم' or 'شيفت ليلي' in item.status %}status-present{% endif %}
+{% if item.status == 'إجازة' %}status-leave{% endif %}
+{% if item.status == 'مغادرة' %}status-departure{% endif %}
+">
+    {{ item.status }}
+</td>
+
+            <td><a class="btn-detail" href="{% url 'Employees/employee_detail' item.employee.pk %}">عرض التفاصيل</a></td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="5" style="color:red;">لا يوجد موظفون اليوم</td> </tr>
+        {% endfor %}
+    </tbody>
+</table>
+</div>
+</body>
+</html>

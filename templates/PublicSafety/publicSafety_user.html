@@ -1,0 +1,162 @@
+{% load crispy_forms_tags %}
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>تسجيل السلامة العامة</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- Bootstrap + Leaflet -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css">
+    <style>
+        body {
+            font-family: 'Cairo', sans-serif;
+            background-color: #f8f9fa;
+            direction: rtl;
+            text-align: right;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            margin-top: 30px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        h2 {
+            color: #007bff;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-section {
+            margin-bottom: 25px;
+        }
+        .map-container {
+            margin-bottom: 25px;
+            border: 1px solid #ccc;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+ <div class="container mt-5">
+        <!-- زر الذهاب إلى كل السجلات -->
+        <a href="{% url 'PublicSafety/history_publicSafety_details' %}" class="btn btn-primary">كل السجلات</a>
+    </div>
+
+    
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-success text-center">{{ message }}</div>
+        {% endfor %}
+    {% endif %}
+
+    {% if user.is_authenticated %}
+        <p class="text-right text-small">مرحباً {{ user.username }} | <a href="{% url 'logout' %}">تسجيل خروج</a></p>
+    {% else %}
+        <p class="text-right text-small"><a href="{% url 'login' %}">تسجيل دخول</a></p>
+    {% endif %}
+
+    <h2>📋 تسجيل بيانات السلامة العامة</h2>
+{% if saved_safety_id %}
+    <a href="{% url 'public_safety_pdf' saved_safety_id %}" class="btn btn-outline-success mt-3">📄 تحميل التقرير PDF</a>
+{% endif %}
+
+
+    <!-- عرض الخريطة -->
+    <div class="map-container">
+        <h5 class="text-right p-2">🗺️ الخريطة:</h5>
+        {{ m|safe }}
+    </div>
+
+    <!-- عرض العنوان الحالي -->
+    <div class="mb-4">
+        <h5><strong>📌 العنوان الحالي:</strong> {{ address }}</h5>
+    </div>
+
+    <!-- Hidden fields -->
+    <input type="hidden" name="latitude" id="latitude">
+    <input type="hidden" name="longitude" id="longitude">
+
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+
+        <div class="form-section form-row">
+                  <div class="form-group col-md-6">{{ form.manual_address|as_crispy_field }}</div>
+
+            <div class="form-group col-md-6">{{ form.owner_name|as_crispy_field }}</div>
+            <div class="form-group col-md-6">{{ form.national_id|as_crispy_field }}</div>
+
+            <div class="form-group col-md-6">{{ form.whatsapp|as_crispy_field }}</div>
+            <div class="form-group col-md-6">{{ form.business_name|as_crispy_field }}</div>
+
+            <div class="form-group col-md-6">{{ form.city|as_crispy_field }}</div>
+
+            <div class="form-group col-md-6">{{ form.area|as_crispy_field }}</div>
+            <div class="form-group col-md-6">{{ form.receipt_number|as_crispy_field }}</div>
+
+            <div class="form-group col-md-6">{{ form.required_actions|as_crispy_field }}</div>
+            <div class="form-group col-md-6">{{ form.actions_done|as_crispy_field }}</div>
+
+            <div class="form-group col-md-6">{{ form.amount|as_crispy_field }}</div>
+    
+        </div>
+
+        <div class="form-group">
+            <label>📷 الصور (اختياري):</label>
+            <input type="file" name="images" multiple class="form-control" accept="image/*">
+        </div>
+
+        <div class="form-group">
+            <label>🎥 الفيديوهات (اختياري):</label>
+            <input type="file" name="videos" multiple class="form-control" accept="video/*">
+        </div>
+
+        <div class="text-center mt-4">
+            <button type="submit" class="btn btn-primary">💾 حفظ</button>
+        </div>
+    </form>
+
+</div>
+
+<!-- JavaScript لتحديد الموقع الجغرافي -->
+<script>
+    window.onload = function () {
+        const urlParams = new URLSearchParams(window.location.search);
+        const lat = urlParams.get("lat");
+        const lng = urlParams.get("lng");
+        const address = urlParams.get("address");
+
+        if (!lat || !lng) {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(function (position) {
+                    const currentLat = position.coords.latitude;
+                    const currentLng = position.coords.longitude;
+
+                    const page = window.location.pathname;
+                    fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${currentLat}&lon=${currentLng}&accept-language=ar`)
+                        .then(response => response.json())
+                        .then(data => {
+                            const addressText = data.display_name || 'موقعك الحالي';
+                            window.location.href = `${page}?lat=${currentLat}&lng=${currentLng}&color=blue&address=${encodeURIComponent(addressText)}`;
+                        });
+                }, function (error) {
+                    alert("حدث خطأ أثناء تحديد الموقع: " + error.message);
+                });
+            } else {
+                alert("المتصفح لا يدعم تحديد الموقع الجغرافي.");
+            }
+        } else {
+            document.getElementById("latitude").value = lat;
+            document.getElementById("longitude").value = lng;
+        }
+    }
+</script>
+
+</body>
+</html>

@@ -1,0 +1,117 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>قائمة السائقين</title>
+    <style>
+        body { font-family: Tahoma, sans-serif; background: #f4f6f9; margin: 20px; }
+        h1 { text-align: center; margin-bottom: 30px; }
+
+        .driver-card {
+            background: #fff;
+            padding: 20px;
+            margin: 15px auto;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            width: 80%;
+        }
+
+        .driver-card h3 { margin-top: 0; color: #2c3e50; }
+        .driver-card p { margin: 5px 0; }
+
+        .images-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .image-box {
+            text-align: center;
+            background: #fafafa;
+            padding: 8px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        .image-box h4 {
+            margin: 5px 0;
+            font-size: 14px;
+            color: #333;
+        }
+
+      .image-box img {
+    width: 100%;
+    height: auto;        /* خلي الارتفاع تلقائي */
+    object-fit: contain; /* يظهر الصورة كاملة بدون قص */
+    border-radius: 6px;
+    border: 1px solid #ddd;
+    transition: transform 0.3s ease;
+}
+
+.image-box img:hover {
+    transform: scale(1.05);
+}
+
+        .btn {
+            display: inline-block;
+            padding: 10px 18px;
+            margin-bottom: 20px;
+            background: #2c7be5;
+            color: #fff;
+            border-radius: 8px;
+            text-decoration: none;
+        }
+        .btn:hover { background: #1a5bb8; }
+    </style>
+</head>
+<body>
+    <h1>🚖 قائمة السائقين</h1>
+               <a href="/vehicles/?source=maintenance"
+       style="display:inline-block; margin-right:10px; padding:10px 15px; background:#34495e; color:white; border-radius:6px; text-decoration:none;">
+رجوع 
+   </a>
+    <div style="text-align:center;">
+        <a href="{% url 'Driver/add_driver' %}" class="btn">➕ إضافة سائق جديد</a>
+    </div>
+
+    {% for driver in drivers %}
+        <div class="driver-card">
+            <h3>{{ driver.name }}</h3>
+            <p><strong>رقم الهوية:</strong> {{ driver.national_id }}</p>
+            <p><strong>مكان السكن:</strong> {{ driver.residence }}</p>
+            <p><strong>المدينة/القرية:</strong> {{ driver.city_or_village }}</p>
+            <p><strong>رخصة القيادة:</strong> {{ driver.license_info }}</p>
+            <p><strong>موقع العمل:</strong> {{ driver.work_location }}</p>
+
+            {% if driver.id_card_image or driver.personal_image or driver.license_image %}
+            <div class="images-grid">
+                {% if driver.id_card_image %}
+                <div class="image-box">
+                    <h4>🆔 الهوية</h4>
+                    <img src="{{ driver.id_card_image.url }}" alt="صورة الهوية">
+                </div>
+                {% endif %}
+
+                {% if driver.personal_image %}
+                <div class="image-box">
+                    <h4>📸 شخصية</h4>
+                    <img src="{{ driver.personal_image.url }}" alt="صورة شخصية">
+                </div>
+                {% endif %}
+
+                {% if driver.license_image %}
+                <div class="image-box">
+                    <h4> الرخصة</h4>
+                    <img src="{{ driver.license_image.url }}" alt="صورة الرخصة">
+                </div>
+                {% endif %}
+            </div>
+            {% endif %}
+        </div>
+    {% empty %}
+        <p style="text-align:center;">لا يوجد سائقين مسجلين.</p>
+    {% endfor %}
+</body>
+</html>

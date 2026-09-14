@@ -1,0 +1,9 @@
+<ul>
+{% for notif in notifications %}
+    <li {% if not notif.read %}style="font-weight:bold;"{% endif %}>
+        {{ notif.message }} - {{ notif.created_at|date:"H:i d/m/Y" }}
+    </li>
+{% empty %}
+    <li>لا توجد إشعارات</li>
+{% endfor %}
+</ul>

@@ -1,0 +1,317 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>قائمة المركبات</title>
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+    <style>
+        body { font-family: "Tahoma", sans-serif; background: #f4f6f9; margin: 20px; text-align: right; }
+        h1 { text-align: center; margin-bottom: 20px; color: #2c3e50; }
+        .buttons-bar { display: flex; justify-content: center; margin-bottom: 30px; gap: 15px; flex-wrap: wrap; }
+        .btn-add { padding: 12px 24px; background: #27ae60; color: #fff; font-size: 16px; font-weight: bold; border-radius: 8px; text-decoration: none; transition: background 0.3s ease; border: none; cursor: pointer; }
+        .btn-add:hover { background: #219150; }
+        .search-box { max-width: 600px; margin: 0 auto 30px; display: flex; }
+        .search-box input { flex: 1; padding: 12px; border: 1px solid #ccc; border-radius: 0 8px 8px 0; outline: none; font-size: 16px; }
+        .search-box button { padding: 12px 24px; background: #2c7be5; border: none; color: white; border-radius: 8px 0 0 8px; cursor: pointer; font-size: 16px; }
+        
+        /* الجداول */
+        table { width: 95%; margin: 20px auto; border-collapse: collapse; background: #fff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+        th, td { padding: 12px 15px; border-bottom: 1px solid #ddd; text-align: center; }
+        th { background: #27ae60; color: #fff; font-size: 16px; }
+        tr:hover { background: #f9f9f9; }
+
+        .btn-table { padding: 6px 12px; color: #fff; border-radius: 6px; text-decoration: none; font-size: 13px; margin: 2px; display: inline-block; }
+        .btn-fuel { background: #f39c12; }
+        .btn-trip { background: #8e44ad; }
+        .btn-maintenance { background: #e67e22; }
+        .btn-status { background: #2c7be5; }
+        .btn-driver { background: #2c3e50; }
+        .btn-detail { background: #16a085; }
+
+        /* إعدادات القوائم المنسدلة */
+        .dropdown {
+            position: absolute;
+            top: 55px;
+            left: 0;
+            width: 320px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            display: none;
+            overflow: hidden;
+            z-index: 2000;
+            border: 1px solid #ddd;
+        }
+        .dropdown.show { display: block !important; }
+
+        /* بقية التنسيقات */
+        .notification-icon { font-size: 26px; cursor: pointer; background: #fff; padding: 12px; border-radius: 50%; box-shadow: 0 4px 10px rgba(0,0,0,0.1); display: flex; align-items: center; justify-content: center; position: relative; }
+        .notification-badge { position: absolute; top: -5px; right: -5px; background: #e74c3c; color: white; border-radius: 50%; padding: 2px 7px; font-size: 12px; font-weight: bold; }
+        .dropdown-header { background: #f8f9fa; padding: 12px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; font-weight: bold; }
+        .dropdown-body { max-height: 350px; overflow-y: auto; }
+        .notification-item { padding: 12px; border-bottom: 1px solid #f1f1f1; cursor: pointer; font-size: 13px; transition: 0.2s; text-align: right; color: #333; }
+        .notification-item:hover { background: #f9f9f9; }
+        .notification-item.unread { background: #edf5ff; border-right: 4px solid #2c7be5; }
+        
+        .notification-item.status-item.unread { 
+            background: #fdf2f2; 
+            border-right: 4px solid #c0392b; 
+        }
+    </style>
+</head>
+<body>
+
+<div style="display:flex; justify-content:space-between; align-items:center; background:#f8f9fa; padding:10px 20px; border-radius:10px; box-shadow:0 2px 8px #ddd; direction:rtl;">
+    <h6 style="margin:0; color:#333; font-weight:bold;">
+        👤 مرحباً {{ request.user.username }}
+    </h6>
+    <form method="post" action="{% url 'logout' %}">
+        {% csrf_token %}
+        <button type="submit" style="background:#dc3545; color:white; border:none; padding:7px 15px; border-radius:6px; cursor:pointer;">
+            🚪 تسجيل الخروج
+        </button>
+    </form>
+</div>
+
+{% with source=request.GET.source %}
+
+<div id="notification-container" style="position: fixed; top: 80px; left: 20px; z-index: 2000; direction: rtl;">
+    <div class="notification-icon" onclick="toggleDropdown('global-notification-dropdown')">
+        🔔 
+        {% if total_unread_count > 0 %}
+            <span class="notification-badge">{{ total_unread_count }}</span>
+        {% endif %}
+    </div>
+
+    <div id="global-notification-dropdown" class="dropdown">
+        <div class="dropdown-header">
+
+
+            
+            <span style="color: #333;">مركز التنبيهات والتحديثات</span>
+            <button onclick="markAllAsRead()" style="border:none; background:none; color:#2c7be5; cursor:pointer; font-size:11px; font-weight: bold;">تحديد الكل كمقروء</button>
+        </div>
+        
+        <div class="dropdown-body">
+            {% if status_notifications %}
+                <div style="background: #fdf2f2; padding: 6px 12px; font-size: 11px; color: #c0392b; font-weight: bold; border-bottom: 1px solid #f9d5d5;">🚨 تحديثات وإضافات المركبات</div>
+                {% for noti in status_notifications %}
+                    <div class="notification-item status-item {% if not noti.read %}unread{% endif %}" 
+                         data-id="{{ noti.id }}" 
+                         data-type="status" 
+                         onclick="markRead('{{ noti.id }}', 'status', this)">
+                        {{ noti.message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+            {% if notifications %}
+                <div style="background: #f2f7fd; padding: 6px 12px; font-size: 11px; color: #2c7be5; font-weight: bold; border-bottom: 1px solid #d5e6f9;">📅 مواعيد التأمين والترخيص</div>
+                {% for noti in notifications %}
+                    <div class="notification-item {% if not noti.read %}unread{% endif %}" 
+                         data-id="{{ noti.id }}" 
+                         data-type="general" 
+                         onclick="markRead('{{ noti.id }}', 'general', this)">
+                        {{ noti.message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+            {% if not notifications and not status_notifications %}
+                <div class="notification-item" style="padding: 20px; text-align: center; color: #888; font-size: 13px;">
+                    لا توجد تنبيهات جديدة حالياً
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+{% endwith %}
+
+    <h1>🚗 قائمة المركبات</h1>
+
+    <div class="buttons-bar">
+      {% if can_add_vehicle %}
+        <a href="{% url 'add_vehicle' %}" class="btn-add">➕ إضافة مركبة</a>
+      {% endif %}
+        <a href="{% url 'Driver/driver_list' %}" class="btn-add" style="background:#2c3e50;">👤 السائقين</a>
+    </div>
+
+    <form method="get" class="search-box">
+        <input type="text" name="بحث" placeholder="ابحث برقم المركبة أو المركز..." value="{{ نص_البحث }}">
+        {% if source %}<input type="hidden" name="source" value="{{ source }}">{% endif %}
+        <button type="submit">بحث</button>
+    </form>
+
+{% for نوع, الحالات in مصنفة.items %}
+<div class="قسم">
+    <h2 style="margin-right: 2.5%;">🔹 {{ نوع }}</h2>
+
+    {% for حالة_key, مركبات_قائمة in الحالات.items %}
+        {% if مركبات_قائمة %}
+            <h3 style="margin-right: 3%; color: {% if حالة_key == 'داخل' %}#27ae60{% else %}#e74c3c{% endif %};">
+                {% if حالة_key == 'داخل' %}✅ داخل الخدمة{% else %}⛔ خارج الخدمة{% endif %}
+            </h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>رقم النمرة</th>
+                        <th>المركز</th>
+                        <th>حالة الاعتماد</th>
+                        <th>العمليات</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for مركبة in مركبات_قائمة %}
+                    <tr>
+                        <td>{{ forloop.counter }}</td>
+                        <td>{{ مركبة.vehicle_number }}</td>
+                        <td>{{ مركبة.center }}</td>
+                        <td>
+                            {% if مركبة.approval.approved_by_transport_manager and مركبة.approval.approved_by_governorate_manager %}
+                                <span class="badge-success">معتَمَد كلياً ✓</span>
+                            {% elif مركبة.approval.approved_by_transport_manager or مركبة.approval.approved_by_governorate_manager %}
+                                <span class="badge-pending">معتمد جزئياً ⏳</span>
+                            {% else %}
+                                <span class="badge-pending">قيد الانتظار ⏳</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <a href="{% url 'Vehicle/vehicle_detail' مركبة.id %}" class="btn-table btn-detail">تفاصيل المركبة والاعتماد</a>
+                            <a href="{% url 'Driver/vehicle_drivers' مركبة.id %}" class="btn-table btn-driver">👤 السائقين</a>
+                            {% if perms.map.change_vehicle_status %}
+                                <a href="{% url 'vehicle_status' مركبة.id %}" class="btn-table btn-status">📋 الحالة</a>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% endif %}
+    {% endfor %}
+</div>
+{% empty %}
+    <p style="text-align:center; color:#e74c3c; margin-top: 50px; font-weight: bold; font-size: 18px;">⚠️ لا توجد مركبات مسجلة تابعة لنطاق صلاحيتك حالياً أو لا تطابق البحث.</p>
+{% endfor %}
+
+<script>
+function getCSRFToken() {
+    return document.cookie
+        .split("; ")
+        .find(row => row.startsWith("csrftoken="))
+        ?.split("=")[1];
+}
+
+function toggleDropdown(id) {
+    let menu = document.getElementById(id);
+    if (menu) {
+        menu.classList.toggle("show");
+    }
+}
+
+document.addEventListener("click", function(e) {
+    if (!e.target.closest("#notification-container")) {
+        document.querySelectorAll(".dropdown").forEach(function(menu) {
+            menu.classList.remove("show");
+        });
+    }
+});
+
+function markRead(id, type, element) {
+    let url = type === 'status' 
+        ? `/notifications/status/mark-as-read/${id}/` 
+        : `/notifications/mark-as-read/${id}/`; 
+
+    fetch(url, {
+        method: "POST",
+        headers: {
+            "X-CSRFToken": getCSRFToken(),
+            "Content-Type": "application/json"
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === "success") {
+            // إزالة كلاس غير المقروء وتنسيقه بصرياً
+            if (element) {
+                element.classList.remove("unread");
+                element.style.opacity = "0.6"; // تمييزه كـ "مقروء"
+            }
+            
+            // تحديث العداد
+            let badge = document.querySelector(".notification-badge");
+            if (badge) {
+                let currentCount = parseInt(badge.innerText, 10);
+                if (currentCount > 1) {
+                    badge.innerText = currentCount - 1;
+                } else {
+                    badge.remove();
+                }
+            }
+        }
+    })
+    .catch(err => console.error("خطأ أثناء تحديث الإشعار:", err));
+}
+function markAllAsRead() {
+    fetch("/notifications/mark-as-read-all/", {
+        method: "POST",
+        headers: {
+            "X-CSRFToken": getCSRFToken(),
+            "Content-Type": "application/json"
+        }
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error("حدث خطأ أثناء الاتصال بالسيرفر");
+        }
+        return response.json();
+    })
+    .then(data => {
+        if (data.status === "success") {
+            // إزالة تمييز الإشعارات غير المقروءة بصرياً
+            document.querySelectorAll(".notification-item.unread").forEach(item => {
+                item.classList.remove("unread");
+                item.style.opacity = "0.6";
+            });
+
+            // إزالة شارة العداد (Badge)
+            let badge = document.querySelector(".notification-badge");
+            if (badge) {
+                badge.remove();
+            }
+        } else {
+            console.error("خطأ:", data.message);
+        }
+    })
+    .catch(err => console.error("خطأ أثناء تحديث الكل:", err));
+}
+const socket = new WebSocket(
+    "ws://" + window.location.host + "/ws/notifications/"
+);
+
+socket.onmessage = function(event) {
+    const data = JSON.parse(event.data);
+    
+    // تحديث العداد أو القائمة ديناميكياً بدلاً من إعادة تحميل الصفحة بالكامل
+    if (data.message) {
+        let badge = document.querySelector(".notification-badge");
+        let dropdownBody = document.querySelector(".dropdown-body");
+        
+        // يمكنك هنا إضافة الإشعار الجديد للقائمة وتحديث رقم الـ Badge إذا أردت
+        // أو تحديث الصفحة فقط إذا وصل إشعار حقيقي جديد وليس مجرد اتصال
+        if (data.trigger_reload) {
+            location.reload();
+        }
+    }
+};
+
+socket.onclose = function(event) {
+    console.error("WebSocket closed unexpectedly");
+};
+</script>
+
+
+</body>
+</html>

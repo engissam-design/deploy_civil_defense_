@@ -1,0 +1,85 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>جميع صيانة المركبة {{ vehicle.vehicle_number }}</title>
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+</head>
+<body>
+
+<h1>🛠  صيانات المركبة: {{ vehicle.vehicle_number }}</h1>
+<h2>🔧 عدد مرات الصيانة للمركبة: {{ الصيانات.count }}</h2>
+
+<div style="margin-bottom:20px;">
+    {% comment %} <a href="{% url 'Vehicle/vehicle_list' %}" 
+       style="display:inline-block; margin-right:10px; padding:10px 15px; background:#34495e; color:white; border-radius:6px; text-decoration:none;">
+       ⬅ العودة لقائمة المركبات
+    </a> {% endcomment %}
+
+
+       <a href="/vehicles/?source=maintenance"
+       style="display:inline-block; margin-right:10px; padding:10px 15px; background:#34495e; color:white; border-radius:6px; text-decoration:none;">
+رجوع 
+   </a>
+
+
+    <a href="{% url 'maintenance_create' vehicle.id %}" 
+       style="display:inline-block; padding:10px 15px; background:#27ae60; color:white; border-radius:6px; text-decoration:none;">
+       ➕ إضافة صيانة جديدة
+    </a>
+    <a href="{% url 'Maintenance/calculate_monthly_maintenance' vehicle.id %}" 
+       style="display:inline-block; padding:10px 15px; background:#27ae60; color:white; border-radius:6px; text-decoration:none;">
+ تقرير لعمليات الصيانة
+</a>
+</div>
+
+
+
+<table border="1" cellspacing="0" cellpadding="8" style="width:90%; margin:auto; text-align:right;">
+    <thead>
+        <tr style="background:#2c3e50; color:#fff;">
+            <th>التاريخ</th>
+            <th>الكراج</th>
+            <th>التكلفة</th>
+            <th>الملاحظات</th>
+            <th>الأعطال</th>
+            
+            <th>التفاصيل</th>  <!-- العمود الجديد -->
+        </tr>
+    </thead>
+    <tbody>
+        {% for صيانة in الصيانات %}
+            <tr>
+                <td>{{ صيانة.date }}</td>
+                <td>{{ صيانة.garage }}</td>
+                <td>{{ صيانة.total_cost }} شيكل</td>
+                <td>{{ صيانة.notes }}</td>
+                <td>
+                    {% if صيانة.items.exists %}
+                        <ul>
+                        {% for item in صيانة.items.all %}
+                            <li>{{ item.description }} - التكلفة: {{ item.cost }} شيكل</li>
+                        {% endfor %}
+                        </ul>
+                    {% else %}
+                        لا توجد أعطال
+                    {% endif %}
+                </td>
+                <td>
+                    <a href="{% url 'Maintenance/maintenance_detail' صيانة.id %}" 
+                       style="display:inline-block; padding:5px 10px; background:#2980b9; color:white; border-radius:4px; text-decoration:none;">
+                        🔍 عرض التفاصيل
+                    </a>
+                </td>
+            </tr>
+        {% empty %}
+            <tr>
+                <td colspan="6" style="text-align:center;">لا توجد صيانة مسجلة لهذه المركبة</td>
+            </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+</body>
+</html>

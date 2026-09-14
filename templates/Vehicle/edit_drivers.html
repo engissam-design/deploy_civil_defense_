@@ -1,0 +1,49 @@
+<style>
+    .form-container {
+        max-width: 600px;
+        margin: 50px auto;
+        padding: 30px;
+        background: #fff;
+        border-radius: 12px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        font-family: "Tahoma", sans-serif;
+    }
+    h2 { color: #2c3e50; margin-bottom: 25px; text-align: center; }
+    
+    /* تنسيق حقل السائقين */
+    .form-container p { margin-bottom: 20px; }
+    .form-container select {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        height: 200px; /* جعل القائمة طويلة لتسهيل الاختيار */
+    }
+    
+    .actions { display: flex; gap: 10px; margin-top: 20px; }
+    .btn-save { 
+        flex: 1; padding: 12px; background: #27ae60; color: white; 
+        border: none; border-radius: 6px; cursor: pointer; font-size: 16px;
+    }
+    .btn-save:hover { background: #219150; }
+    
+    .btn-cancel { 
+        flex: 1; padding: 12px; background: #95a5a6; color: white; 
+        text-align: center; border-radius: 6px; text-decoration: none;
+    }
+    .btn-cancel:hover { background: #7f8c8d; }
+</style>
+
+<div class="form-container">
+    <form method="post">
+        {% csrf_token %}
+        <h2>تعديل سائقي المركبة: {{ vehicle.vehicle_number }}</h2>
+        
+        {{ form.as_p }}
+        
+        <div class="actions">
+            <button type="submit" class="btn-save">حفظ التغييرات</button>
+            <a href="{% url 'Vehicle/vehicle_detail' vehicle.pk %}" class="btn-cancel">إلغاء</a>
+        </div>
+    </form>
+</div>

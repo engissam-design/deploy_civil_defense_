@@ -1,0 +1,101 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>حالة معدات المركبة {{ vehicle.vehicle_number }}</title>
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+    <style>
+        body {
+            font-family: "Cairo", sans-serif;
+            background: #f5f7fa;
+            margin: 0;
+            padding: 20px;
+        }
+        h2 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #333;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        th, td {
+            padding: 10px;
+            border: 1px solid #ccc;
+            text-align: center;
+        }
+        th {
+            background: #007bff;
+            color: white;
+        }
+        form {
+            display: flex;
+            gap: 5px;
+            align-items: center;
+            justify-content: center;
+        }
+        select, input[type="text"] {
+            padding: 5px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+        }
+        button {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 6px 10px;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #218838;
+        }
+    </style>
+</head>
+<body>
+    <h2>حالة معدات المركبة: {{ vehicle.vehicle_number }}</h2>
+
+    <table>
+        <thead>
+            <tr>
+                <th>اسم المعدة</th>
+                <th>الحالة</th>
+                <th>ملاحظات</th>
+                <th>حفظ</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for eq in equipments %}
+            <tr>
+                <td>{{ eq.name }}</td>
+                <td colspan="3">
+                    <form method="post" action="{% url 'equipment_status' vehicle.id %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="equipment_id" value="{{ eq.id }}">
+                        
+                        <select name="status">
+                            <option value="available" {% if eq.status == "available" %}selected{% endif %}>صالح</option>
+                            <option value="broken" {% if eq.status == "broken" %}selected{% endif %}>عاطل</option>
+                        </select>
+
+                        <input type="text" name="notes" value="{{ eq.notes|default:'' }}" placeholder="ملاحظات..." style="width:150px;">
+
+                        <button type="submit">💾 حفظ</button>
+                    </form>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="4">لا توجد معدات لهذه المركبة.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+</body>
+</html>

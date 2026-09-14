@@ -1,0 +1,130 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div style="max-width:900px; margin:40px auto; padding:30px; background:#fff; border-radius:12px; box-shadow:0 4px 12px rgba(0,0,0,0.1); font-family:'Tahoma',sans-serif;">
+    <h2 style="text-align:center; margin-bottom:30px;">الرحلات للمركبة: {{ vehicle.vehicle_number }}</h2>
+
+    <form method="post">
+        {% csrf_token %}
+        <p>
+            {{ form.filter_type.label_tag }} {{ form.filter_type }}
+            {% if form.filter_type.errors %}
+                <span style="color:red;">{{ form.filter_type.errors.0 }}</span>
+            {% endif %}
+        </p>
+
+        <div class="monthly-fields-container" style="display:none;">
+            <p>
+                {{ form.month.label_tag }} {{ form.month }}
+                {% if form.month.errors %}
+                    <span style="color:red;">{{ form.month.errors.0 }}</span>
+                {% endif %}
+            </p>
+        </div>
+
+        <div class="year-field-container" style="display:none;">
+            <p>
+                {{ form.year.label_tag }} {{ form.year }}
+                {% if form.year.errors %}
+                    <span style="color:red;">{{ form.year.errors.0 }}</span>
+                {% endif %}
+            </p>
+        </div>
+
+        <div class="range-fields-container" style="display:none;">
+            <p>
+                {{ form.start_date.label_tag }} {{ form.start_date }}
+                {% if form.start_date.errors %}
+                    <span style="color:red;">{{ form.start_date.errors.0 }}</span>
+                {% endif %}
+            </p>
+            <p>
+                {{ form.end_date.label_tag }} {{ form.end_date }}
+                {% if form.end_date.errors %}
+                    <span style="color:red;">{{ form.end_date.errors.0 }}</span>
+                {% endif %}
+            </p>
+        </div>
+
+        <button type="submit" style="background:#27ae60; color:white; padding:12px 20px; border:none; border-radius:6px; cursor:pointer; font-size:16px;">
+            عرض الرحلات
+        </button>
+        
+        {% if form.non_field_errors %}
+            <div style="color:red; margin-top:15px;">
+                {% for error in form.non_field_errors %}
+                    {{ error }}
+                {% endfor %}
+            </div>
+        {% endif %}
+    </form>
+
+    {% if trips or form.is_bound and total_distance is not None %}
+        {% if trips %}
+            <div style="text-align:center; margin-top:20px;">
+                <a href="{% url 'download_trips_pdf' vehicle.id %}?filter_type={{ form.cleaned_data.filter_type|default:"" }}{% if form.cleaned_data.month %}&month={{ form.cleaned_data.month }}{% endif %}{% if form.cleaned_data.year %}&year={{ form.cleaned_data.year }}{% endif %}{% if form.cleaned_data.start_date %}&start_date={{ form.cleaned_data.start_date|date:"Y-m-d" }}{% endif %}{% if form.cleaned_data.end_date %}&end_date={{ form.cleaned_data.end_date|date:"Y-m-d" }}{% endif %}" 
+                    target="_blank" 
+                    style="background:#2980b9; color:white; padding:12px 20px; border-radius:6px; text-decoration:none; font-size:16px;">
+                    🖨️ طباعة PDF
+                </a>
+            </div>
+
+            <p style="text-align:center; font-size:20px; margin-top:20px;">
+                🚗 إجمالي المسافات في الفترة: <strong>{{ total_distance|floatformat:2 }} كم</strong>
+            </p>
+
+            <table style="width:100%; border-collapse:collapse; margin-top:20px; font-size:16px;">
+                <thead>
+                    <tr style="background:#2c3e50; color:white;">
+                        <th>التاريخ</th>
+                        <th>الوجهة / الهدف</th>
+                        <th>عداد البداية</th>
+                        <th>عداد النهاية</th>
+                        <th>المسافة المقطوعة</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for trip in trips %}
+                    <tr style="text-align:center; {% if forloop.counter|divisibleby:2 %}background:#ecf0f1;{% endif %}">
+                        <td>{{ trip.date }}</td>
+                        <td>{{ trip.destination }}</td>
+                        <td>{{ trip.start_odometer }}</td>
+                        <td>{{ trip.end_odometer }}</td>
+                        <td>{{ trip.distance }} كم</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <p style="text-align:center; color:#e74c3c; margin-top:20px;">لا توجد رحلات في الفترة المحددة</p>
+        {% endif %}
+    {% endif %}
+
+    <div style="text-align:center; margin-top:30px;">
+        <a href="{% url 'Trip/trip_list' vehicle.id %}" style="text-decoration:none; color:#007bff;">⬅ الرجوع لسجل الرحلات</a>
+    </div>
+</div>
+
+<script>
+function showFields(value){
+    // Hide all containers initially
+    document.querySelectorAll('.monthly-fields-container, .year-field-container, .range-fields-container').forEach(el => el.style.display='none');
+
+    // Show containers based on filter type
+    if(value === 'monthly') {
+        document.querySelector('.monthly-fields-container').style.display='block';
+        document.querySelector('.year-field-container').style.display='block';
+    } else if(value === 'yearly') {
+        document.querySelector('.year-field-container').style.display='block';
+    } else if(value === 'range') {
+        document.querySelector('.range-fields-container').style.display='block';
+    }
+}
+
+window.onload = function(){
+    const select = document.querySelector('select[name="filter_type"]');
+    if(select) showFields(select.value);
+}
+</script>
+
+{% endblock %}

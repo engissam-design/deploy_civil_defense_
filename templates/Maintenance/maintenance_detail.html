@@ -1,0 +1,123 @@
+{% load i18n %}
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>تفاصيل الصيانة</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f0f2f5;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+        }
+        .container {
+            max-width: 850px;
+            margin: auto;
+            background: #fff;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+        }
+        h2, h3 { color: #2c3e50; margin-bottom: 20px; border-bottom: 2px solid #007bff; padding-bottom: 10px; display: inline-block; }
+        
+        .info {
+            padding: 12px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            gap: 10px;
+        }
+        .info strong { color: #007bff; min-width: 150px; }
+        
+        table { width: 100%; border-collapse: separate; border-spacing: 0; margin: 20px 0; border: 1px solid #ddd; border-radius: 8px; overflow: hidden; }
+        th { background: #007bff; color: white; padding: 12px; }
+        td { padding: 12px; border-bottom: 1px solid #eee; text-align: center; }
+        tr:last-child td { border-bottom: none; }
+        
+        .btn {
+            text-decoration: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: bold;
+            display: inline-block;
+            transition: 0.3s;
+        }
+        .btn-primary { background: #007bff; color: white; }
+        .btn-primary:hover { background: #0056b3; }
+        
+        form { margin-top: 20px; padding: 15px; background: #f9f9f9; border-radius: 10px; }
+        .btn-submit { background: #28a745; color: white; border: none; padding: 10px 25px; border-radius: 8px; cursor: pointer; font-size: 16px; width: 100%; }
+        .btn-submit:hover { background: #218838; }
+
+        img { border-radius: 8px; border: 1px solid #ddd; margin-top: 10px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div style="margin-bottom: 20px;">
+        <a href="/vehicle/{{ maintenance.vehicle.id }}/maintenances/" class="btn btn-primary">⬅ رجوع</a>
+    </div>
+
+    <h2>{% trans "تفاصيل الصيانة" %}</h2>
+
+    <div class="info"><strong>المركبة:</strong> {{ maintenance.vehicle }}</div>
+    <div class="info"><strong>الكراج:</strong> {{ maintenance.garage }}</div>
+    <div class="info"><strong>التاريخ:</strong> {{ maintenance.date }}</div>
+    <div class="info"><strong>التكلفة الإجمالية:</strong> {{ maintenance.calculated_total_cost }} شيكل</div>
+    <div class="info"><strong>ملاحظات:</strong> {{ maintenance.notes|default:"لا يوجد" }}</div>
+
+    <h3>الأعطال / القطع المستبدلة</h3>
+    {% if items %}
+    <table>
+        <tr>
+            <th>#</th>
+            <th>الوصف</th>
+            <th>التكلفة</th>
+            <th>صورة العطل</th>
+        </tr>
+        {% for item in items %}
+        <tr>
+            <td>{{ forloop.counter }}</td>
+            <td>{{ item.description }}</td>
+            <td>{{ item.cost }} شيكل</td>
+            <td>
+                {% if item.image %}
+                    <a href="{{ item.image.url }}" target="_blank" class="btn btn-primary" style="padding: 5px 10px; font-size: 12px;">عرض الصورة</a>
+                {% else %}
+                    <span style="color: #999;">لا يوجد</span>
+                {% endif %}
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+    {% else %}
+    <p style="text-align:center; color:#666;">لا توجد أعطال مسجلة</p>
+    {% endif %}
+
+    <a href="{% url 'maintenance_item_create' maintenance.id %}" class="btn btn-primary">➕ إضافة عطل جديد</a>
+<br> <br><br>
+
+    <h3 style="margin-top: 30px;">إكمال بيانات الفاتورة</h3>
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" class="btn-submit">💾 حفظ الفاتورة</button>
+    </form>
+
+    <div style="margin-top: 20px;">
+        <div class="info"><strong>رقم الفاتورة:</strong> {{ maintenance.invoice_number|default:"لم يتم إدخالها" }}</div>
+        <div class="info"><strong>صورة الفاتورة:</strong>
+            {% if maintenance.invoice_image %}
+                <br><img src="{{ maintenance.invoice_image.url }}" alt="صورة الفاتورة" style="max-width:200px;">
+            {% else %}
+                لا يوجد
+            {% endif %}
+        </div>
+        <div class="info"><strong>تاريخ انتهاء الصيانة:</strong> {{ maintenance.end_date|default:"لم يتم إدخاله" }}</div>
+    </div>
+</div>
+
+</body>
+</html>

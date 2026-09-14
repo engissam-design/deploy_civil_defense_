@@ -1,0 +1,109 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>خريطة التحقيقات</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css">
+
+    <style>
+        body {
+            font-family: 'Cairo', sans-serif;
+            background-color: #f8f9fa;
+        }
+        #map {
+            height: 500px;
+            margin-top: 20px;
+            border-radius: 10px;
+            border: 1px solid #ccc;
+        }
+        .container {
+            margin-top: 30px;
+        }
+        table {
+            background-color: white;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2 class="text-center text-primary">🗺️ خريطة التحقيقات</h2>
+
+    <!-- الخريطة -->
+    <div id="map"></div>
+
+    <!-- الجدول -->
+    <h4 class="mt-5 text-right">📋 تفاصيل التحقيقات:</h4>
+    <div class="table-responsive">
+        <table class="table table-bordered table-striped text-right">
+            <thead class="thead-dark">
+                <tr>
+                    <th>الرقم</th>
+                    <th>المركز</th>
+                    <th>اسم المالك</th>
+                    <th>تاريخ الحادث</th>
+                    <th>العنوان</th>
+                    <th>📍 رابط PDF</th>
+                    <th>🔍 التفاصيل</th>
+
+                </tr>
+            </thead>
+            <tbody>
+                {% for i in investigations %}
+                <tr>
+                    <td>{{ i.id }}</td>
+                    <td>{{ i.center|default:"-" }}</td>
+                    <td>{{ i.owner_name|default:"-" }}</td>
+                    <td>{{ i.event_date|date:"Y-m-d" }}</td>
+                    <td>{{ i.current_address|default:"-" }}</td>
+                    <td>
+                        <a href="{% url 'download_investigation_pdf' i.id %}" target="_blank" class="btn btn-sm btn-outline-primary">📄 PDF</a>
+                    </td>
+                    <td>
+<a href="{% url 'Investigation/investigation_detail' i.id %}" class="btn btn-sm btn-outline-success">
+    🔍 التفاصيل
+</a>
+</td>
+
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Leaflet JS -->
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<script>
+    const map = L.map('map').setView([32.22, 35.26], 8);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap'
+    }).addTo(map);
+
+   {% for i in investigations %}
+    {% if i.latitude and i.longitude %}
+        L.marker([{{ i.latitude }}, {{ i.longitude }}], {
+            icon: L.icon({
+                iconUrl: 'https://maps.google.com/mapfiles/ms/icons/blue-dot.png',
+                iconSize: [32, 32],
+                iconAnchor: [16, 32],
+            })
+        }).addTo(map).bindPopup(`
+            <b>المركز:</b> {{ i.center|default:"-" }}<br>
+            <b>المالك:</b> {{ i.owner_name|default:"-" }}<br>
+            <b>📅:</b> {{ i.event_date|date:"Y-m-d" }}<br>
+            <a href="{% url 'Investigation/investigation_detail' i.id %}" class="btn btn-sm btn-primary mt-2" target="_blank">عرض التفاصيل</a>
+        `);
+    {% endif %}
+{% endfor %}
+
+</script>
+
+</body>
+</html>

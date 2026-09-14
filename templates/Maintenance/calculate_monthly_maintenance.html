@@ -1,0 +1,378 @@
+{% load static %}
+<div class="maintenance-container">
+    <h2><i class="fas fa-tools"></i> حساب تكلفة صيانة المركبة: <span class="vehicle-num">{{ vehicle.vehicle_number }}</span></h2>
+
+    <form method="post" action="{% url 'Maintenance/calculate_monthly_maintenance' vehicle_id=vehicle.pk %}" id="maintenance-filter-form">
+        {% csrf_token %}
+
+        <div class="filter-group-container">
+            <div class="form-group filter-type-select">
+                {{ form.filter_type.label_tag }}
+                {{ form.filter_type }}
+            </div>
+            
+            <div id="filter-details-container">
+                <div class="form-group dynamic-field" id="monthly-fields" style="display: none;">
+                    <div class="field-item">
+                        {{ form.month.label_tag }}
+                        {{ form.month }}
+                    </div>
+                    <div class="field-item">
+                        {{ form.year.label_tag }}
+                        {{ form.year }}
+                    </div>
+                </div>
+
+                <div class="form-group dynamic-field" id="range-fields" style="display: none;">
+                    <div class="field-item">
+                        {{ form.start_date.label_tag }}
+                        {{ form.start_date }}
+                    </div>
+                    <div class="field-item">
+                        {{ form.end_date.label_tag }}
+                        {{ form.end_date }}
+                    </div>
+                </div>
+            </div>
+            
+            <button type="submit" class="btn btn-primary">
+                <i class="fas fa-calculator"></i> حساب المبلغ
+            </button>
+        </div>
+    </form>
+
+    <hr class="section-divider">
+
+    {% if total_cost is not None %}
+        <div class="maintenance-results">
+            {% if maintenance_items %}
+                <div class="cost-summary">
+                    <div class="total-display">
+                        💰 <strong>مجموع تكلفة الصيانة:</strong> 
+                        <span class="total-amount">{{ total_cost|floatformat:2 }} شيكل</span>
+                    </div>
+                    
+                    {% with filter_type=form.cleaned_data.filter_type %}
+                        <a href="{% url 'download_monthly_maintenance_pdf' vehicle_id=vehicle.pk %}?filter_type={{ filter_type }}{% if filter_type == 'monthly' or filter_type == 'yearly' and form.cleaned_data.year %}&year={{ form.cleaned_data.year }}{% endif %}{% if filter_type == 'monthly' and form.cleaned_data.month %}&month={{ form.cleaned_data.month }}{% endif %}{% if filter_type == 'range' and form.cleaned_data.start_date %}&start_date={{ form.cleaned_data.start_date|date:'Y-m-d' }}{% endif %}{% if filter_type == 'range' and form.cleaned_data.end_date %}&end_date={{ form.cleaned_data.end_date|date:'Y-m-d' }}{% endif %}"
+                           target="_blank" 
+                           class="btn btn-secondary pdf-btn">
+                           <i class="fas fa-print"></i> طباعة PDF
+                        </a>
+                    {% endwith %}
+                </div>
+
+                <h3><i class="fas fa-list-alt"></i> تفاصيل الصيانة</h3>
+                <div class="table-responsive">
+                    <table class="maintenance-table">
+                        <thead>
+                            <tr>
+                                <th style="width: 20%;">الصيانة (الورشة والتاريخ)</th>
+                                <th style="width: 60%;">البنود الفرعية والتكلفة (شيكل)</th>
+                                <th style="width: 20%;">إجمالي الصيانة (شيكل)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for maintenance in maintenance_items %}
+                                <tr class="{% cycle 'row-odd' 'row-even' %}">
+                                    <td>
+                                        <strong>{{ maintenance.garage }}</strong> <br>
+                                        <small>{{ maintenance.date|date:"Y-m-d" }}</small>
+                                    </td>
+                                    <td class="items-list">
+                                        {% for item in maintenance.items.all %}
+                                            <div class="item-detail">
+                                                <span>{{ item.description }}</span>: 
+                                                <span class="cost-value">{{ item.cost|floatformat:2 }} شيكل</span>
+                                            </div>
+                                        {% endfor %}
+                                    </td>
+                                    <td class="total-cost-cell">
+                                        <span class="cost-value">{{ maintenance.total_cost|floatformat:2 }}</span>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <p class="alert alert-warning">❌ لا توجد بيانات صيانة في الفترة المحددة.</p>
+            {% endif %}
+        </div>
+    {% endif %}
+    
+    <div class="back-link">
+        <a href="{% url 'Trip/trip_list' vehicle.id %}" class="btn btn-info"><i class="fas fa-arrow-right"></i> الرجوع لسجل الصيانة</a>
+    </div>
+</div>
+
+<style>
+
+body {
+    direction: rtl; /* Ensure RTL flow */
+    font-family: 'Tahoma', Arial, sans-serif;
+    background-color: #f8f9fa; /* Light background for the page */
+}
+
+/* 2. Main Container Styling */
+.maintenance-container {
+    max-width: 950px;
+    margin: 40px auto;
+    padding: 30px;
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+}
+
+.maintenance-container h2 {
+    text-align: center;
+    margin-bottom: 25px;
+    color: #2c3e50; /* Darker heading color */
+    border-bottom: 2px solid #3498db; /* Primary color line */
+    padding-bottom: 10px;
+}
+
+.vehicle-num {
+    color: #e74c3c; /* Highlight vehicle number */
+    font-weight: bold;
+}
+
+/* 3. Form and Filter Styling */
+.filter-group-container {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end; /* Align items to the bottom */
+    gap: 15px; /* Spacing between flex items */
+}
+
+.form-group {
+    margin-bottom: 0; /* Remove default margin */
+}
+
+.filter-type-select {
+    flex-basis: 200px; /* Give the filter type selector fixed width */
+}
+
+#filter-details-container {
+    flex-grow: 1; /* Allow details container to take remaining space */
+}
+
+.dynamic-field {
+    display: flex;
+    gap: 15px;
+}
+
+.field-item {
+    flex-grow: 1;
+}
+
+label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 600;
+    color: #333;
+    font-size: 0.9rem;
+}
+
+input, select {
+    width: 100%;
+    padding: 10px 12px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    font-size: 1rem;
+    box-sizing: border-box; /* Include padding in the element's total width and height */
+    transition: border-color 0.3s;
+}
+
+input:focus, select:focus {
+    border-color: #3498db;
+    outline: none;
+    box-shadow: 0 0 5px rgba(52, 152, 219, 0.5);
+}
+
+/* 4. Buttons Styling */
+.btn {
+    padding: 10px 18px;
+    border: none;
+    border-radius: 6px;
+    font-size: 1rem;
+    cursor: pointer;
+    text-decoration: none; /* For the PDF link */
+    white-space: nowrap;
+}
+
+.btn-primary {
+    background-color: #28a745; /* Success Green */
+    color: white;
+}
+
+.btn-primary:hover {
+    background-color: #218838;
+}
+
+.pdf-btn {
+    background-color: #3498db; /* Primary Blue */
+    color: white;
+}
+
+.pdf-btn:hover {
+    background-color: #2980b9;
+}
+
+.btn-info {
+    background-color: #f39c12; /* Orange for info/back link */
+    color: white;
+}
+.btn-info:hover {
+    background-color: #e67e22;
+}
+
+/* 5. Results and Summary */
+.section-divider {
+    border: 0;
+    border-top: 1px solid #eee;
+    margin: 30px 0;
+}
+
+.cost-summary {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px;
+    background-color: #ecf0f1;
+    border-radius: 8px;
+    margin-bottom: 25px;
+    font-size: 1.1rem;
+    font-weight: 500;
+}
+
+.total-amount {
+    color: #e74c3c;
+    font-weight: 700;
+}
+
+h3 {
+    margin-top: 20px;
+    margin-bottom: 15px;
+    color: #2c3e50;
+    font-size: 1.25rem;
+}
+
+/* 6. Table Styling */
+.table-responsive {
+    overflow-x: auto;
+}
+
+.maintenance-table {
+    width: 100%;
+    border-collapse: separate; /* Use separate for rounded corners and spacing */
+    border-spacing: 0;
+    font-size: 0.95rem;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.maintenance-table th, .maintenance-table td {
+    padding: 12px;
+    text-align: center;
+    border-bottom: 1px solid #eee;
+    border-left: 1px solid #eee; /* Add internal vertical borders */
+}
+/* Fix for right border (RTL) */
+.maintenance-table th:first-child, .maintenance-table td:first-child {
+    border-right: none;
+}
+.maintenance-table th:last-child, .maintenance-table td:last-child {
+    border-left: none;
+}
+
+
+.maintenance-table thead th {
+    background-color: #34495e; /* Darker header */
+    color: white;
+    font-weight: 600;
+    border-bottom: 2px solid #3498db;
+}
+
+.row-even {
+    background-color: #f9f9f9;
+}
+
+.row-odd:hover, .row-even:hover {
+    background-color: #f0f0f0; /* Subtle hover effect */
+}
+
+.items-list {
+    text-align: right; /* Align detailed items list to the right */
+}
+
+.item-detail {
+    border-bottom: 1px dotted #eee;
+    padding: 3px 0;
+}
+
+.item-detail:last-child {
+    border-bottom: none;
+}
+
+.cost-value {
+    color: #007bff; /* Blue cost highlights */
+    font-weight: 600;
+}
+
+.total-cost-cell {
+    font-weight: 700;
+    color: #28a745;
+}
+
+/* 7. Alerts */
+.alert-warning {
+    color: #856404;
+    background-color: #fff3cd;
+    border: 1px solid #ffeeba;
+    padding: 15px;
+    border-radius: 8px;
+    text-align: center;
+    margin-top: 20px;
+}
+
+/* 8. Back Link */
+.back-link {
+    text-align: center;
+    margin-top: 30px;
+}
+</style>
+
+<script>
+// The JavaScript function remains the same and is necessary for form interactivity
+function showFields(filterType) {
+    document.getElementById('monthly-fields').style.display = 'none'; 
+    document.getElementById('range-fields').style.display = 'none';
+
+    if (filterType === 'monthly') {
+        document.getElementById('monthly-fields').style.display = 'flex'; // Use flex to maintain layout
+    } else if (filterType === 'yearly') {
+        document.getElementById('monthly-fields').style.display = 'flex'; 
+        // Hide the month field explicitly within the 'monthly-fields' container for yearly filter
+        const monthField = document.querySelector('#monthly-fields .field-item:first-child');
+        if (monthField) {
+            monthField.style.display = 'none';
+        }
+    } else if (filterType === 'range') {
+        document.getElementById('range-fields').style.display = 'flex'; // Use flex to maintain layout
+    }
+    
+    // Reset the month field visibility if switching back to monthly
+    const monthField = document.querySelector('#monthly-fields .field-item:first-child');
+    if (filterType === 'monthly' && monthField) {
+        monthField.style.display = 'block';
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    const filterSelect = document.getElementById('id_filter_type');
+    if (filterSelect) {
+        showFields(filterSelect.value);
+    }
+});
+</script>

@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<style>
+/* أساسي للصفحة */
+body {
+    font-family: "Tahoma", sans-serif;
+    background: #f4f6f9;
+    margin: 20px;
+    color: #2c3e50;
+}
+
+/* عنوان الصفحة */
+h2 {
+    text-align: center;
+    margin-bottom: 25px;
+    font-size: 28px;
+    color: #34495e;
+}
+
+/* تنسيق الفورم */
+form {
+    max-width: 600px;
+    margin: 0 auto 30px;
+    background: #fff;
+    padding: 25px;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    font-size: 18px;
+}
+
+form p {
+    margin-bottom: 15px;
+}
+
+form input, form select, form textarea {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    font-size: 16px;
+}
+
+form input[type="file"] {
+    padding: 3px;
+}
+
+/* زر الحفظ */
+form button {
+    background: #27ae60;
+    color: #fff;
+    font-size: 18px;
+    font-weight: bold;
+    padding: 12px 20px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+form button:hover {
+    background: #219150;
+}
+
+/* زر العودة */
+a.back-btn {
+    display: inline-block;
+    margin: 0 auto;
+    padding: 10px 18px;
+    background: #34495e;
+    color: #fff;
+    border-radius: 8px;
+    text-decoration: none;
+    font-size: 16px;
+    font-weight: bold;
+    transition: background 0.3s;
+}
+
+a.back-btn:hover {
+    background: #2c3e50;
+}
+
+/* نص مسافة بين الفورم والزر */
+.back-btn-container {
+    text-align: center;
+    margin-top: 20px;
+}
+</style>
+
+<h2>إضافة زيارة جديدة للمركبة: {{ vehicle.vehicle_number }}</h2>
+
+<form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <div style="text-align:center;">
+        <button type="submit">💾 حفظ الزيارة</button>
+    </div>
+</form>
+
+<div class="back-btn-container">
+    <a href="{% url 'Trip/trip_list' vehicle.id %}" class="back-btn">⬅ الرجوع لسجل الزيارات</a>
+</div>
+
+{% endblock %}

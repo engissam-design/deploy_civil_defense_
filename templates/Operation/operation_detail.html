@@ -1,0 +1,459 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}تفاصيل المركز: {{ center.center }}{% endblock %}
+
+{% block content %}
+<div style="
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    background:#f8f9fa;
+    padding:10px 20px;
+    border-radius:10px;
+    box-shadow:0 2px 8px #ddd;
+    direction:rtl;
+">
+
+    <h6 style="
+        margin:0;
+        color:#333;
+        font-weight:bold;
+    ">
+        👤 مرحباً {{ request.user.username }}
+    </h6>
+
+
+    <form method="post" action="{% url 'logout' %}">
+        {% csrf_token %}
+        <button type="submit" style="
+            background:#dc3545;
+            color:white;
+            border:none;
+            padding:7px 15px;
+            border-radius:6px;
+            cursor:pointer;
+        ">
+            تسجيل الخروج
+        </button>
+    </form>
+
+</div>
+<div class="page-container">
+    
+    <div class="header-section">
+        <h2 class="page-title">تفاصيل المركز: {{ center.center }}</h2>
+        
+       <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 20px;">
+
+    <a href="{% url 'Operation/edit_operation' center.pk %}" class="btn edit-btn">
+        ✏️ تعديل بيانات المركز
+    </a>
+
+    <a href="{% url 'Operation/operations_map' %}" class="btn edit-btn">
+        🔙 رجوع
+    </a>
+
+</div>
+    </div>
+    <div id="map"></div>
+
+    <div class="center-info-container">
+        <div class="info-card">
+            <h3>📍 معلومات عامة واتصال</h3>
+            <ul>
+                <li><strong>المحافظة:</strong> {{ center.governorate }}</li>
+                <li><strong>خط العرض:</strong> {{ center.latitude }}</li>
+                <li><strong>خط الطول:</strong> {{ center.longitude }}</li>
+                <li class="separator"></li>
+                <li><strong>الهاتف الأرضي:</strong> {{ center.landline|default:"لا يوجد" }}</li>
+                <li><strong>رقم الطوارئ:</strong> {{ center.emergency_number|default:"لا يوجد" }}</li>
+                <li><strong>الهاتف الخلوي:</strong> {{ center.mobile|default:"لا يوجد" }}</li>
+            </ul>
+        </div>
+
+
+        <div class="info-card">
+            <h3> ختم المركز</h3>
+
+            <h3>🎯 الهدف والخدمات</h3>
+            <ul>
+                <li><strong>الهدف:</strong> {{ center.objective|default:"لا يوجد" }}</li>
+                <li><strong>الخدمات:</strong> {{ center.services|default:"لا يوجد" }}</li>
+                {% comment %} <li class="separator"></li>
+           {% endcomment %}
+            </ul>
+        </div>
+    </div>
+
+    <h3 class="section-heading">📁 ملفات المعدات المرفقة</h3>
+<div class="equipment-files-container">
+    
+    <div class="file-card">
+        <h4>ملفات المركبة</h4>
+        {% if center.vehicle_files.all %}
+            <ul>
+                {% for file in center.vehicle_files.all %}
+                    <li>
+                        <a href="{{ file.file.url }}" target="_blank" class="file-link green-link">
+                            {{ file.caption|default:"ملف مرفق" }} 
+                        </a>
+                        <br>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p>لا توجد ملفات مرفقة.</p>
+        {% endif %}
+    </div>
+    
+    <div class="file-card">
+        <h4>ملفات المخزن</h4>
+        {% if center.store_files.all %}
+            <ul>
+                {% for file in center.store_files.all %}
+                    <li>
+                        <a href="{{ file.file.url }}" target="_blank" class="file-link blue-link">
+                            {{ file.caption|default:"ملف مرفق" }} 
+                        </a>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p>لا توجد ملفات مرفقة.</p>
+        {% endif %}
+    </div>
+    
+    <div class="file-card">
+        <h4>ملفات المركز</h4>
+        {% if center.center_files.all %}
+            <ul>
+                {% for file in center.center_files.all %}
+                    <li>
+                        <a href="{{ file.file.url }}" target="_blank" class="file-link orange-link">
+                            {{ file.caption|default:"ملف مرفق" }} 
+                        </a>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p>لا توجد ملفات مرفقة.</p>
+        {% endif %}
+    </div>
+
+</div>
+
+    <h3 class="section-heading">🧰 قوائم المعدات اليدوية</h3>
+    <div class="equipment-list-container">
+        <div class="list-card">
+            <h4>معدات المركبة</h4>
+            {% if center.vehicle_equipment.all %}
+                <ul>
+                    {% for item in center.vehicle_equipment.all %}
+                        <li>{{ item.name }}</li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p>لا توجد معدات مسجلة يدوياً.</p>
+            {% endif %}
+        </div>
+
+        <div class="list-card">
+            <h4>معدات المخزن</h4>
+            {% if center.store_equipment.all %}
+                <ul>
+                    {% for item in center.store_equipment.all %}
+                        <li>{{ item.name }}</li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p>لا توجد معدات مسجلة يدوياً.</p>
+            {% endif %}
+        </div>
+
+        <div class="list-card">
+            <h4>معدات المركز</h4>
+            {% if center.center_equipment.all %}
+                <ul>
+                    {% for item in center.center_equipment.all %}
+                        <li>{{ item.name }}</li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p>لا توجد معدات مسجلة يدوياً.</p>
+            {% endif %}
+        </div>
+    </div>
+      <!-- <h3 class="section-heading">🖼️ صور الترويسة</h3> -->
+
+<!-- {% if center.header_image %}
+<div class="header-image-card">
+    <div class="header-image-header">
+        <span class="header-title">🖼️ ترويسة المركز الرسمية</span>
+        <div class="header-actions">
+            <a href="{{ center.header_image.url }}" target="_blank" class="header-btn" title="فتح الصورة بحجم كامل">
+                🔍 عرض بحجم كامل
+            </a>
+        </div>
+    </div>
+    
+    <div class="header-image-wrapper">
+        <img src="{{ center.header_image.url }}" alt="ترويسة {{ center.center }}" class="header-img">
+    </div>
+</div>
+{% endif %} -->
+  <h3 class="section-heading">🖼️ صور المركز</h3>
+
+{% if center.center_images.all %} <div class="images-gallery">
+        {% for img in center.center_images.all %} <div class="image-card">
+                <img src="{{ img.image.url }}" alt="{{ img.caption }}" />
+                {% if img.caption %}
+                    <p>{{ img.caption }}</p>
+                {% endif %}
+            </div>
+        {% endfor %}
+    </div>
+{% else %}
+    <p>لا توجد صور للمركز</p>
+{% endif %}
+</div>
+
+<style>
+/* 🔴 الأنماط الجديدة لزر التعديل والعنوان 🔴 */
+.header-section {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 40px;
+    padding-bottom: 10px;
+    border-bottom: 3px solid #3498db; /* فصل بصري واضح */
+}
+
+.page-title {
+    /* تم تعديل هذا النمط ليصبح جزءًا من flex container */
+    margin: 0;
+    color: #1a5276;
+    font-size: 2.2em;
+    padding-bottom: 0;
+    border-bottom: none; 
+}
+
+.edit-btn {
+    /* تصميم الزر بشكل احترافي وجذاب */
+    display: inline-block;
+    padding: 10px 20px;
+    background-color: #f39c12; /* لون برتقالي بارز */
+    color: white;
+    text-decoration: none;
+    font-weight: bold;
+    border-radius: 8px;
+    transition: background-color 0.3s, transform 0.1s;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    white-space: nowrap; /* لمنع الكسر على سطرين */
+}
+
+.edit-btn:hover {
+    background-color: #e67e22; /* لون أغمق عند المرور بالماوس */
+    transform: translateY(-2px);
+}
+/* ------------------------------------- */
+
+
+.page-container {
+    font-family: 'Tahoma', sans-serif;
+    direction: rtl;
+    max-width: 1200px;
+    margin: auto;
+    padding: 30px;
+    background: #f8fafc;
+    border-radius: 16px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+}
+
+
+#map {
+    height: 450px;
+    width: 100%;
+    margin-bottom: 40px;
+    border-radius: 16px;
+    box-shadow: 0 6px 15px rgba(0,0,0,0.15);
+}
+
+/* كروت المعلومات */
+.center-info-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 25px;
+    margin-bottom: 40px;
+}
+
+.info-card {
+    flex: 1 1 400px;
+    background: #ffffff;
+    padding: 25px;
+    border-radius: 14px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    transition: transform 0.3s ease;
+}
+
+.info-card:hover {
+    transform: translateY(-5px);
+}
+
+.info-card h3 {
+    font-size: 1.5em;
+    margin-bottom: 15px;
+    color: #2c3e50;
+    border-bottom: 2px solid #3498db;
+    padding-bottom: 8px;
+}
+
+.info-card li {
+    list-style: none;
+    font-size: 1.1em;
+    margin-bottom: 10px;
+    color: #34495e;
+}
+
+.info-card ul {
+    padding: 0;
+}
+
+.separator {
+    border-top: 1px dashed #ccc;
+    margin: 10px 0;
+}
+
+/* الأقسام */
+.section-heading {
+    font-size: 1.7em;
+    margin: 40px 0 20px 0;
+    color: #1a5276;
+    border-bottom: 2px solid #2ecc71;
+    padding-bottom: 5px;
+}
+
+/* ملفات المعدات */
+.equipment-files-container, .equipment-list-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 25px;
+}
+
+.file-card, .list-card {
+    flex: 1 1 300px;
+    background: #fff;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.07);
+}
+
+.file-card h4, .list-card h4 {
+    font-size: 1.3em;
+    margin-bottom: 10px;
+    color: #2c3e50;
+}
+
+.file-link {
+    display: inline-block;
+    padding: 10px 20px;
+    border-radius: 8px;
+    color: #fff;
+    text-decoration: none;
+    font-weight: bold;
+    transition: all 0.2s;
+}
+
+.green-link { background: #2ecc71; }
+.green-link:hover { background: #27ae60; }
+.blue-link { background: #3498db; }
+.blue-link:hover { background: #2980b9; }
+.orange-link { background: #f39c12; }
+.orange-link:hover { background: #e67e22; }
+
+/* قوائم المعدات */
+.list-card ul {
+    padding: 0 0 0 20px; /* إزالة الـ padding الأيمن وتوفير مسافة للترقيم/النقط */
+    list-style-type: disc;
+    margin-right: 0;
+}
+
+.list-card li {
+    font-size: 1em;
+    margin-bottom: 5px;
+    list-style-position: inside;
+}
+
+
+/* معرض الصور */
+.images-gallery {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+}
+
+.image-card {
+    flex: 1 1 250px;
+    background: #fff;
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    transition: transform 0.3s;
+    text-align: center;
+}
+
+.image-card img {
+    width: 100%;
+    height: 180px;
+    object-fit: cover;
+}
+
+.image-card p {
+    padding: 10px;
+    color: #333;
+    font-size: 1em;
+}
+
+.image-card:hover {
+    transform: scale(1.03);
+}
+
+@media (max-width: 768px) {
+    .info-card, .file-card, .list-card {
+        flex: 1 1 100%;
+    }
+    .header-section {
+        flex-direction: column;
+        align-items: flex-end;
+    }
+    .page-title {
+        text-align: right;
+        width: 100%;
+        margin-bottom: 15px;
+    }
+    .edit-btn {
+        width: 100%;
+        text-align: center;
+    }
+}
+</style>
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    var lat = parseFloat("{{ center.latitude|default:0 }}");
+    var lng = parseFloat("{{ center.longitude|default:0 }}");
+
+    var map = L.map('map').setView([lat, lng], 15);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; مساهمة OpenStreetMap'
+    }).addTo(map);
+
+    L.marker([lat, lng]).addTo(map)
+        .bindPopup("<b>{{ center.center }}</b><br>{{ center.governorate }}")
+        .openPopup();
+});
+</script>
+
+{% endblock %}

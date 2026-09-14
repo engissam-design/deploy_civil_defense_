@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>إضافة سائق</title>
+    <style>
+        body { font-family: Tahoma, sans-serif; background: #f4f6f9; margin: 20px; }
+        h1 { text-align: center; margin-bottom: 30px; }
+        form {
+            max-width: 600px;
+            margin: 0 auto;
+            background: #fff;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        label { display: block; margin-top: 12px; font-weight: bold; }
+        input, textarea, select {
+            width: 100%;
+            padding: 10px;
+            margin-top: 6px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+        }
+        button {
+            margin-top: 20px;
+            padding: 12px 20px;
+            background: #27ae60;
+            border: none;
+            color: #fff;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+        button:hover { background: #1e874b; }
+    </style>
+</head>
+<body>
+    <h1>➕ إضافة سائق جديد</h1>
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">حفظ</button>
+    </form>
+</body>
+</html>

@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+{% block content %}
+{% if messages %}
+<div style="margin:15px auto; max-width:700px;">
+    {% for message in messages %}
+        <div style="padding:12px; margin-bottom:10px; border-radius:6px;
+                    {% if message.tags == 'success' %} background:#2ecc71; color:white;
+                    {% elif message.tags == 'warning' %} background:#e67e22; color:white;
+                    {% elif message.tags == 'info' %} background:#3498db; color:white;
+                    {% else %} background:#95a5a6; color:white; {% endif %}">
+            {{ message }}
+        </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+
+<div style="max-width:700px; margin:30px auto; padding:20px; background:#ecf0f1; border-radius:12px;">
+      {% comment %} <a href="{% url 'Vehicle/vehicle_list' %}" style="display:inline-block; margin-top:10px; 
+       background:#7f8c8d; color:#fff; padding:8px 15px; border-radius:6px; text-decoration:none;">
+       ⬅ الرجوع لقائمة المركبات
+    </a> {% endcomment %}
+
+
+           <a href="/vehicles/?source=maintenance"
+       style="display:inline-block; margin-right:10px; padding:10px 15px; background:#34495e; color:white; border-radius:6px; text-decoration:none;">
+رجوع 
+   </a>
+    <h2>🚗 حالة المركبة رقم {{ vehicle.vehicle_number }}</h2>
+
+    <!-- بيانات المركبة الأساسية -->
+    <p><strong>النوع:</strong> {{ vehicle.vehicle_type }}</p>
+    <p><strong>المهمة:</strong> {{ vehicle.get_work_type_display }}</p>
+    <p><strong>المركز:</strong> {{ vehicle.center }}</p>
+
+
+    <hr>
+<!-- في ملف vehicle_status.html -->
+<strong>الحالة الحالية:</strong>
+{% if vehicle.status == "in_service" %}
+    <span style="color:green; font-weight:bold;">داخل الخدمة ✅</span>
+{% else %}
+    <span style="color:red; font-weight:bold;">خارج الخدمة ⛔</span>
+{% endif %}
+
+
+     
+
+        <br>
+     <br>
+         <strong>وضع الحالة الان؟ </strong>
+
+<form method="post" action="{% url 'toggle_vehicle_status' vehicle.id %}" 
+      style="margin-top:15px;" 
+      onsubmit="return confirm('هل أنت متأكد أنك تريد تغيير حالة المركبة؟');">
+    {% csrf_token %}
+    <textarea name="status_notes" rows="3" placeholder="أدخل الخلل ,خراب..." 
+              style="width:100%; padding:8px; border-radius:6px; margin-bottom:10px;"></textarea>
+    <button type="submit" 
+        style="padding:10px 18px; background:#2c7be5; color:#fff; border:none; border-radius:6px; cursor:pointer;">
+        🔄 تغيير الحالة
+    </button>
+</form>
+
+    <br>
+  
+    <hr>
+
+    <!-- سجل تغييرات الحالة -->
+    <h3>📜 سجل تغييرات الحالة</h3>
+    {% if vehicle.status_history.exists %}
+        <table style="width:100%; border-collapse: collapse; margin-top:10px;">
+            <thead>
+                <tr style="background:#2c7be5; color:white;">
+                    <th style="padding:8px; border:1px solid #ccc;">التاريخ والوقت</th>
+                    <th style="padding:8px; border:1px solid #ccc;">الحالة</th>
+                    <th style="padding:8px; border:1px solid #ccc;">ملاحظات</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for record in vehicle.status_history.all|dictsortreversed:"changed_at" %}
+                <tr>
+                    <td style="padding:8px; border:1px solid #ccc;">{{ record.changed_at|date:"Y-m-d H:i" }}</td>
+                    <td style="padding:8px; border:1px solid #ccc;">
+                        {% if record.status == "in_service" %}
+                            <span style="color:green; font-weight:bold;">داخل الخدمة ✅</span>
+                        {% else %}
+                            <span style="color:red; font-weight:bold;">خارج الخدمة ⛔</span>
+                        {% endif %}
+                    </td>
+                    <td style="padding:8px; border:1px solid #ccc;">{{ record.notes|default:"لا توجد" }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p>لا توجد تغييرات سابقة.</p>
+    {% endif %}
+</div>
+{% endblock %}

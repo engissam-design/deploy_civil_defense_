@@ -1,0 +1,190 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>📋 تفاصيل سجل السلامة العامة</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
+    <style>
+        body {
+            direction: rtl;
+            background-color: #f8f9fa;
+            padding: 20px;
+            font-family: 'Cairo', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .map-wrapper {
+            width: 100%;
+            height: 400px;
+            margin-bottom: 40px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        .container-details {
+            background-color: #ffffff;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+        }
+        table {
+            direction: rtl;
+            text-align: right;
+        }
+        table th, table td {
+            text-align: right;
+            vertical-align: middle;
+        }
+        h3, h5 {
+            font-weight: 700;
+            color: #212529;
+        }
+        .media img {
+            cursor: pointer;
+            border-radius: 8px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+            width: 100%;
+            height: auto;
+            object-fit: cover;
+        }
+        .media img:hover {
+            transform: scale(1.05);
+        }
+        .media video {
+            border-radius: 8px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+            width: 100%;
+            height: auto;
+        }
+    </style>
+</head>
+<body>
+
+<div class="map-wrapper">
+    {{ map_html|safe }}
+</div>
+
+<div class="container container-details">
+    <h3 class="text-center mb-5">🔍 تفاصيل سجل السلامة العامة</h3>
+
+    <table class="table table-bordered">
+        <tbody>
+            <tr><th>المستخدم</th><td>{{ record.user.username }}</td></tr>
+            <tr><th>اسم صاحب المحل</th><td>{{ record.owner_name }}</td></tr>
+            <tr><th>رقم الهوية</th><td>{{ record.national_id }}</td></tr>
+            <tr><th>رقم الواتساب</th><td>{{ record.whatsapp }}</td></tr>
+            <tr><th>اسم الحرفة</th><td>{{ record.business_name }}</td></tr>
+            <tr><th>العنوان من الخريطة</th><td>{{ record.map_address }}</td></tr>
+            <tr><th>العنوان التفصيلي</th><td>{{ record.manual_address }}</td></tr>
+            <tr><th>المدينة</th><td>{{ record.city }}</td></tr>
+            <tr><th>المساحة</th><td>{{ record.area }}</td></tr>
+            <tr><th>رقم الوصل</th><td>{{ record.receipt_number }}</td></tr>
+            <tr><th>الإجراءات المطلوبة</th><td>{{ record.required_actions }}</td></tr>
+            <tr><th>الإجراءات المنفذة</th><td>{{ record.actions_done }}</td></tr>
+            <tr><th>المبلغ</th><td>{{ record.amount }}</td></tr>
+            <tr><th>تاريخ الكشف</th><td>{{ record.start_date }}</td></tr>
+            <tr><th>تاريخ الانتهاء</th><td>{{ record.end_date }}</td></tr>
+            <tr><th>الموقع الجغرافي</th><td>{{ record.latitude }}, {{ record.longitude }}</td></tr>
+        </tbody>
+    </table>
+
+    {% if media %}
+    <hr>
+    <h5 class="mb-4 text-right">📸 الوسائط:</h5>
+    <div class="row media">
+        {% for item in media %}
+            {% if item.image %}
+                <div class="col-6 col-md-3 mb-3">
+                    <div class="card shadow-sm h-100">
+                        <img src="{{ item.image.url }}" alt="صورة" class="card-img-top" data-toggle="modal" data-target="#imageModal" data-img="{{ item.image.url }}">
+                    </div>
+                </div>
+            {% elif item.video %}
+                <div class="col-12 col-md-6 mb-3">
+                    <div class="card shadow-sm h-100 p-2">
+                        <video controls class="w-100 rounded">
+                            <source src="{{ item.video.url }}" type="video/mp4">
+                            المتصفح لا يدعم تشغيل الفيديو.
+                        </video>
+                    </div>
+                </div>
+            {% endif %}
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    {% if receipts %}
+    <hr>
+    <h5 class="mb-4 text-right">🧾 صور الإيصالات:</h5>
+    <div class="row media">
+        {% for r in receipts %}
+            <div class="col-6 col-md-3 mb-3">
+                <div class="card shadow-sm h-100">
+                    <img src="{{ r.image.url }}" alt="إيصال" class="card-img-top">
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    {% if required_docs %}
+    <hr>
+    <h5 class="mb-4 text-right">📄 الوثائق المطلوبة:</h5>
+    <div class="row media">
+        {% for d in required_docs %}
+            <div class="col-6 col-md-3 mb-3">
+                <div class="card shadow-sm h-100">
+                    <img src="{{ d.image.url }}" alt="وثيقة" class="card-img-top">
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <hr>
+<h5 class="mb-3 text-right">🛠️ حالة الجاهزية:</h5>
+<div class="text-right">
+    <form method="post">
+        {% csrf_token %}
+      <div class="form-check d-flex align-items-center justify-content-between" style="width: 100%; max-width: 300px; margin-left: auto;">
+    <label class="form-check-label ml-2" for="isReady"> هل  هل الملف جاهز</label>
+    <input class="form-check-input" type="checkbox" name="is_ready" id="isReady" {% if record.is_ready %}checked{% endif %}>
+</div>
+
+        <button type="submit" class="btn btn-success mt-3">💾 حفظ</button>
+    </form>
+</div>
+
+<div class="text-center mt-5">
+    <a href="{% url 'public_safety_superuser' %}" class="btn btn-secondary btn-lg">🔙 عودة</a>
+</div>
+
+</div>
+
+<!-- مودال لتكبير الصور -->
+<div class="modal fade" id="imageModal" tabindex="-1" role="dialog" aria-labelledby="imageModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+    <div class="modal-content bg-transparent border-0">
+      <div class="modal-body p-0">
+        <img src="" id="modalImage" class="img-fluid rounded" alt="صورة مكبرة">
+      </div>
+      <div class="modal-footer border-0 justify-content-center">
+        <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal">إغلاق</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    $(document).ready(function() {
+        $('.media img').click(function() {
+            var src = $(this).data('img');
+            $('#modalImage').attr('src', src);
+            $('#imageModal').modal('show');
+        });
+    });
+</script>
+</body>
+</html>

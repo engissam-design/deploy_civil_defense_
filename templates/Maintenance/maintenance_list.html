@@ -1,0 +1,140 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>صيانة المركبات</title>
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+    <style>
+        body {
+            font-family: "Tahoma", sans-serif;
+            background: #f9f9f9;
+            margin: 20px;
+        }
+        h1 {
+            text-align: center;
+            color: #444;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: #fff;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+        }
+        th, td {
+            padding: 10px;
+            border: 1px solid #ddd;
+            text-align: center;
+        }
+        th {
+            background: #007bff;
+            color: #fff;
+        }
+        tr:nth-child(even) {
+            background: #f2f2f2;
+        }
+        .btn {
+            padding: 5px 10px;
+            border-radius: 4px;
+            text-decoration: none;
+            color: white;
+        }
+        .btn-view {
+            background: #28a745;
+        }
+        .btn-add {
+            display: inline-block;
+            margin-bottom: 15px;
+            background: #007bff;
+        }
+    </style>
+</head>
+<body>
+
+    <div style="
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    background:#f8f9fa;
+    padding:10px 20px;
+    border-radius:10px;
+    box-shadow:0 2px 8px #ddd;
+    direction:rtl;
+">
+
+    <h6 style="
+        margin:0;
+        color:#333;
+        font-weight:bold;
+    ">
+        👤 مرحباً {{ request.user.username }}
+    </h6>
+
+
+    <form method="post" action="{% url 'logout' %}">
+        {% csrf_token %}
+        <button type="submit" style="
+            background:#dc3545;
+            color:white;
+            border:none;
+            padding:7px 15px;
+            border-radius:6px;
+            cursor:pointer;
+        ">
+             تسجيل الخروج
+        </button>
+    </form>
+
+</div>
+    <form method="get" style="margin-bottom:15px; text-align:center;">
+    <input type="text" name="invoice_number" placeholder="بحث حسب رقم الفاتورة" 
+           value="{{ request.GET.invoice_number|default:'' }}" style="padding:5px; width:200px;">
+    <button type="submit" class="btn btn-add">🔍 بحث</button>
+</form>
+
+    <h1>قائمة صيانة المركبات</h1>
+           <a href="/vehicles/?source=maintenance"
+       style="display:inline-block; margin-right:10px; padding:10px 15px; background:#34495e; color:white; border-radius:6px; text-decoration:none;">
+رجوع 
+   </a>
+<table>
+    <thead>
+        <tr>
+            <th>رقم الصيانة</th> <!-- جديد -->
+            <th>#</th> 
+            <th>رقم المركبة</th>
+            <th>نوع المركبة</th>
+            <th>الكراج</th>
+            <th>تاريخ الصيانة</th>
+            <th>التكلفة</th>
+            <th>رقم الفاتورة</th> <!-- جديد -->
+
+            <th>ملاحظات</th>
+            <th>تفاصيل</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for m in maintenances %}
+        <tr>
+            <td>{{ m.maintenance_number }}</td>
+
+            <td>{{ forloop.counter }}</td> <td>{{ m.vehicle.vehicle_number }}</td>
+            <td>{{ m.vehicle.vehicle_type }}</td>
+            <td>{{ m.garage }}</td>
+            <td>{{ m.date|date:"Y-m-d" }}</td>
+            <td>{{ m.total_cost }} شيكل</td>
+                    <td>{{ m.invoice_number|default:"-" }}</td> <!-- جديد -->
+
+            <td>{{ m.notes|default:"-" }}</td>
+            <td>
+                <a href="{% url 'Maintenance/maintenance_detail' m.id %}" class="btn btn-view">عرض</a>
+            </td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="8">لا يوجد سجلات صيانة</td> </tr>
+        {% endfor %}
+    </tbody>
+</table>
+</body>
+</html>

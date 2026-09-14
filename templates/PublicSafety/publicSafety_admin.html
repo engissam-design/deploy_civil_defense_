@@ -1,0 +1,214 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>لوحة مراقبة السلامة العامة</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- Bootstrap 4 -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
+
+    <!-- خطوط Google -->
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Cairo', sans-serif;
+            background-color: #f0f2f5;
+            padding: 20px;
+        }
+
+        h2 {
+            font-weight: bold;
+            margin-bottom: 25px;
+            text-align: center;
+        }
+
+        .card {
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.07);
+        }
+
+        /* ✅ تكبير الخريطة */
+        .map-container {
+            height: 500px; /* ← تم التكبير من 80 إلى 300 */
+            width: 100%;
+            border-radius: 12px;
+            overflow: hidden;
+            margin: 25px auto;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            transition: all 0.3s ease;
+        }
+
+        .map-container:hover {
+            transform: scale(1.01);
+        }
+
+        .leaflet-container {
+            width: 100% !important;
+            height: 100% !important;
+        }
+
+        .table-container {
+            max-height: 70vh;
+            overflow-y: auto;
+            overflow-x: hidden;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+            table-layout: fixed;
+        }
+
+        th, td {
+            white-space: normal;
+            padding: 12px 10px;
+            vertical-align: middle !important;
+            text-align: center;
+            word-wrap: break-word;
+            word-break: break-word;
+            border: 1px solid #dee2e6;
+        }
+
+        thead {
+            background-color: #343a40;
+            color: white;
+            font-size: 15px;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        tbody tr:nth-child(even) { background-color: #f9f9f9; }
+        tbody tr:hover { background-color: #f1f1f1; }
+
+        .btn-pdf { padding: 4px 10px; font-size: 13px; }
+        .btn-sm { font-size: 13px; }
+    </style>
+</head>
+<body>
+
+<div class="container-fluid">
+
+    <!-- كارد التواريخ -->
+    <div class="card p-3 mb-4" style="max-width: 650px; margin: auto;">
+        <div class="form-row align-items-end">
+            <div class="form-group col-md-4">
+                <label for="startDate" class="font-weight-bold">تاريخ البدء</label>
+                <input type="date" id="startDate" class="form-control">
+            </div>
+            <div class="form-group col-md-4">
+                <label for="endDate" class="font-weight-bold">تاريخ الانتهاء</label>
+                <input type="date" id="endDate" class="form-control">
+            </div>
+            <div class="form-group col-md-4">
+                <button id="weeklyReportBtn" class="btn btn-primary btn-block">طباعة التقرير الأسبوعي</button>
+            </div>
+        </div>
+    </div>
+
+    <h2>📋 لوحة سجلات السلامة العامة</h2>
+
+    <!-- ✅ خريطة أكبر -->
+    <div class="card map-container mx-auto" style="max-width: 900px;">
+        {{ map_html|safe }}
+    </div>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-success text-center">{{ message }}</div>
+        {% endfor %}
+    {% endif %}
+
+    <!-- الجدول -->
+    <div class="card p-3 mt-4">
+        {% if public_safety_records %}
+            <div class="table-container">
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>المستخدم</th>
+                            <th>صاحب المحل</th>
+                            <th>الهوية</th>
+                            <th>الواتساب</th>
+                            <th>الكشف</th>
+                            <th>الانتهاء</th>
+                            <th>الإحداثيات</th>
+                            <th>جاهز الملف</th>
+                            <th>📄 PDF</th>
+                            <th>🔍 التفاصيل</th>
+                            <th>تنبيه واتساب</th>
+                            <th>تنبيه إخطار</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for record in public_safety_records %}
+                        <tr {% if record.is_ready %}class="table-success"{% endif %}>
+                            <td>{{ forloop.counter }}</td>
+                            <td>{{ record.user.username }}</td>
+                            <td>{{ record.owner_name }}</td>
+                            <td>{{ record.national_id }}</td>
+                            <td>{{ record.whatsapp }}</td>
+                            <td>{{ record.start_date }}</td>
+                            <td>{{ record.end_date }}</td>
+                            <td>{{ record.latitude }}, {{ record.longitude }}</td>
+                            <td>{% if record.is_ready %}نعم{% else %}لا{% endif %}</td>
+                            <td><a href="{% url 'public_safety_pdf' record.id %}" class="btn btn-sm btn-outline-primary btn-pdf">تحميل</a></td>
+                            <td><a href="{% url 'history_publicSafety_detail_userss' record.id %}" class="btn btn-sm btn-outline-info">عرض</a></td>
+                            <td>
+                                {% if record.needs_whatsapp_alert and record.whatsapp_link_reminder %}
+                                    <a href="{{ record.whatsapp_link_reminder }}" target="_blank" class="btn btn-sm btn-success">تذكير واتساب</a>
+                                {% else %}
+                                    -
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if record.needs_expired_alert and record.whatsapp_link_expired %}
+                                    <a href="{{ record.whatsapp_link_expired }}" target="_blank" class="btn btn-sm btn-danger">إنذار انتهاء</a>
+                                {% else %}
+                                    -
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="alert alert-warning text-center">⚠️ لا توجد سجلات حالياً.</div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+  const records = [
+    {% for record in public_safety_records %}
+      { amount: {{ record.amount|default:"0" }}, end_date: "{{ record.end_date|default:'' }}" },
+    {% endfor %}
+  ];
+
+  document.getElementById('weeklyReportBtn').addEventListener('click', () => {
+    const startDate = new Date(document.getElementById('startDate').value);
+    const endDate = new Date(document.getElementById('endDate').value);
+
+    if (!startDate || !endDate) {
+      alert("يرجى تحديد التاريخين");
+      return;
+    }
+
+    let total = 0;
+    records.forEach(r => {
+      const d = new Date(r.end_date);
+      if (d >= startDate && d <= endDate) total += parseFloat(r.amount);
+    });
+
+    alert(`المجموع للفترة المختارة: ${total.toFixed(2)}`);
+  });
+</script>
+
+</body>
+</html>

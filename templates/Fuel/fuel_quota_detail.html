@@ -1,0 +1,210 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>تفاصيل مخصص الوقود</title>
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+    <style>
+        body {
+            font-family: "Cairo", sans-serif;
+            background: #f5f7fa;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 30px auto;
+            padding: 20px;
+        }
+
+        .card {
+            background: #fff;
+            border-radius: 12px;
+            padding: 20px 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+        }
+
+        h1, h2 {
+            color: #333;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        table th, table td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: center;
+            font-size: 14px;
+        }
+
+        table th {
+            background: #f0f4f8;
+            font-weight: bold;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 15px;
+            font-size: 15px;
+        }
+
+        .highlight {
+            font-weight: bold;
+            color: #4a90e2;
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-top: 15px;
+            color: #4a90e2;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .back-link:hover {
+            text-decoration: underline;
+        }
+        
+        .form-card {
+            background: #ffe0b2;
+            border: 1px solid #ffb74d;
+            border-radius: 12px;
+            padding: 20px 25px;
+            margin-top: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+        .form-card input[type="number"] {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            box-sizing: border-box;
+        }
+        .form-card button {
+            background: #ff9800;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .text-danger {
+            color: red;
+            font-weight: bold;
+        } 
+        
+        .extra-card {
+            background: #ffebee;
+            border: 1px solid #ef9a9a;
+            border-radius: 12px;
+            padding: 20px 25px;
+            margin-top: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            color: #d32f2f;
+            font-weight: bold;
+        }
+        
+        /* 🌟 CSS لتلوين صف التجاوز */
+        .over-quota-row {
+            background-color: #fce4ec !important; 
+            color: #c2185b;
+            font-weight: bold;
+        }
+        .over-quota-row td {
+            border-color: #f8bbd0 !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="card">
+            <h1>⛽ تفاصيل مخصص الوقود</h1>
+            <a href="{% url 'download_fuel_quota_pdf' quota.id %}" class="back-link" 
+        style="background: #e91e63; color: white; padding: 8px 15px; border-radius: 6px; text-decoration: none; margin-bottom: 15px; display: inline-block;">
+        🖨️ طباعة تقرير PDF
+    </a>
+    
+            <p><strong>المركبة:</strong> {{ quota.vehicle.vehicle_number }} - {{ quota.vehicle.vehicle_type }}</p>
+            <p><strong>الشهر:</strong> {{ quota.month|date:"F Y" }}</p>
+            <div class="stats">
+                <p>🔹 الكمية المخصصة: <span class="highlight">{{ quota.allocated_quantity }}</span> لتر</p>
+                <p>🔹 المبلغ المخصص: <span class="highlight">{{ quota.allocated_amount }}</span> شيكل</p>
+            </div>
+            <div class="stats">
+                <p>✅ المستهلك الكلي: {{ quota.used_quantity }} لتر / {{ quota.used_amount }} شيكل</p>
+                <p>⏳ المتبقي: 
+                    <span class="highlight {% if is_exhausted %}text-danger{% endif %}">
+                        {{ quota.remaining_quantity }} لتر / {{ quota.remaining_amount }} شيكل
+                    </span>
+                </p>
+            </div>
+        </div>
+
+        {% if quota.extra_used_quantity > 0 or quota.extra_used_amount > 0 %}
+        <div class="card extra-card">
+            <h2>⚠️المخصص مستنفذ بالكامل</h2>
+            <div class="stats">
+                <p>💰 الكمية المضافة : <span>{{ quota.extra_used_quantity }}</span> لتر</p>
+                <p>💵 المبلغ المضاف : <span>{{ quota.extra_used_amount }}</span> شيكل</p>
+            </div>
+        </div>
+        {% elif is_exhausted %}
+        <div class="card extra-card">
+            <h2>🚨 المخصص مستنفذ بالكامل!</h2>
+             <p> عند تعبئة  وقود  فسوف يتم اعتبارها  كميات اضافية</p>
+        </div>
+        {% endif %}
+
+        <div class="card">
+            <h2>📝 سجلات التعبئة</h2>
+            <a href="{% url 'add_fuel_filling' quota.id %}" class="back-link">➕ إضافة تعبئة جديدة</a>
+
+    <table>
+    <thead>
+        <tr>
+            <th>#</th> 
+            <th>التاريخ</th>
+            <th>السائق</th>
+            <th>الكمية (لتر)</th>
+            <th>المبلغ (شيكل)</th>
+            <th>وصل الفاتورة</th> <th>ملاحظات</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for filling in fillings %} 
+        <tr class="{% if filling.is_over_quota %}over-quota-row{% endif %}">
+            <td>{{ forloop.counter }}</td> 
+            <td>{{ filling.date|date:"d-m-Y" }}</td>
+            <td>{{ filling.driver.name|default:"غير محدد" }}</td>
+            <td>{{ filling.quantity }}</td>
+            <td>{{ filling.amount }}</td>
+            <td>
+                {% if filling.receipt_image %}
+                    <a href="{{ filling.receipt_image.url }}" target="_blank">🖼️ عرض</a>
+                {% else %}
+                    -
+                {% endif %}
+            </td>
+            <td>{{ filling.notes|default:"-" }}</td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="7">لا توجد تعبئات مسجلة لهذا المخصص.</td> </tr>
+        {% endfor %}
+    </tbody>
+</table>
+        </div>
+        <a href="{% url 'Fuel/fuel_quota_list' %}" class="back-link">⬅ العودة لقائمة المخصصات</a>
+    </div>
+</body>
+</html>

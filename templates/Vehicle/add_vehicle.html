@@ -1,0 +1,199 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>إضافة مركبة جديدة</title>
+    <style>
+        body {
+            font-family: "Cairo", Tahoma, sans-serif;
+            background: #f5f7fa;
+            margin: 0;
+            padding: 0;
+            direction: rtl;
+        }
+
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            margin: 30px 0 20px;
+            font-size: 28px;
+        }
+
+        .form-container {
+            background: #fff;
+            max-width: 700px;
+            margin: auto;
+            padding: 25px 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        form p {
+            margin-bottom: 18px;
+        }
+
+        label {
+            font-weight: bold;
+            display: block;
+            margin-bottom: 6px;
+            color: #34495e;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border 0.3s ease;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            border-color: #3498db;
+            outline: none;
+        }
+
+        /* تحسين Multi-select Dropdown */
+        select[multiple] {
+            height: auto;
+            min-height: 120px;
+        }
+
+        button {
+            background: #3498db;
+            color: #fff;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: bold;
+            width: 100%;
+            transition: background 0.3s ease;
+        }
+
+        button:hover {
+            background: #2980b9;
+        }
+
+        .back-link {
+            display: block;
+            text-align: center;
+            margin-top: 18px;
+            color: #3498db;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .back-link:hover {
+            text-decoration: underline;
+        }
+
+        /* صندوق الأخطاء */
+        .errorlist {
+            color: red;
+            margin: 5px 0;
+            list-style: none;
+            padding: 0;
+        }
+        select {
+    appearance: none;
+    background-color: #fff;
+    background-image: url("data:image/svg+xml;utf8,<svg fill='gray' height='20' width='20' xmlns='http://www.w3.org/2000/svg'><polygon points='0,0 20,0 10,10'/></svg>");
+    background-repeat: no-repeat;
+    background-position: left 10px center;
+    background-size: 12px;
+}
+
+    </style>
+</head>
+<body>
+    <h1>➕ إضافة مركبة جديدة</h1>
+
+    <div class="form-container">
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+{% if form.errors %}
+    <div style="background:#ffe6e6; border:1px solid red; padding:10px; border-radius:8px; margin-bottom:15px;">
+        <strong>❌ حدثت أخطاء، يرجى تصحيحها:</strong>
+        <ul class="errorlist">
+            {% for field in form %}
+                {% for error in field.errors %}
+                    <li>{{ field.label }}: {{ error }}</li>
+                {% endfor %}
+            {% endfor %}
+
+            {% for error in form.non_field_errors %}
+                <li>{{ error }}</li>
+            {% endfor %}
+        </ul>
+    </div>
+{% endif %}
+           <p>{{ form.governorate.label_tag }} {{ form.governorate }}</p>
+<p>{{ form.center.label_tag }} {{ form.center }}</p>
+<hr>
+{{ form.vehicle_number.label_tag }} {{ form.vehicle_number }}
+{{ form.work_type.label_tag }} {{ form.work_type }}
+
+{{ form.drivers.label_tag }} {{ form.drivers }}
+{{ form.vehicle_type.label_tag }} {{ form.vehicle_type }}
+{{ form.model.label_tag }} {{ form.model }}
+{{ form.production_year.label_tag }} {{ form.production_year }}
+{{ form.chassis_number.label_tag }} {{ form.chassis_number }}
+{{ form.engine_power.label_tag }} {{ form.engine_power }}
+{{ form.fuel_type.label_tag }} {{ form.fuel_type }}
+{{ form.insurance_expiry.label_tag }} {{ form.insurance_expiry }}
+{{ form.license_expiry.label_tag }} {{ form.license_expiry }}
+{{ form.insurance_company.label_tag }} {{ form.insurance_company }}
+{{ form.insurance_image.label_tag }} {{ form.insurance_image }}
+{{ form.license_image.label_tag }} {{ form.license_image }}
+{{ form.work_nature.label_tag }} {{ form.work_nature }}
+{{ form.notes.label_tag }} {{ form.notes }}
+{{ form.status.label_tag }} {{ form.status }}
+{{ form.status_notes.label_tag }} {{ form.status_notes }}
+
+            <button type="submit">💾 حفظ المركبة</button>
+        </form>
+        <a href="{% url 'Vehicle/vehicle_list' %}" class="back-link">⬅ العودة لقائمة المركبات</a>
+    </div>
+    {% if request.user.role == "center_admin" %}
+<script>
+    // جعل الحقول غير قابلة للتعديل في الواجهة
+    document.addEventListener("DOMContentLoaded", function() {
+        const governorateField = document.getElementById("id_governorate");
+        const centerField = document.getElementById("id_center");
+        if (governorateField) governorateField.setAttribute("readonly", true);
+        if (centerField) centerField.setAttribute("readonly", true);
+    });
+</script>
+{% endif %}
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const governorateSelect = document.getElementById("id_governorate");
+    const centerSelect = document.getElementById("id_center");
+
+    governorateSelect.addEventListener("change", function() {
+        const governorateId = this.value;
+        centerSelect.innerHTML = '<option value="">جاري التحميل...</option>';
+
+        fetch(`/ajax/get-centers/?governorate_id=${governorateId}`)
+            .then(response => response.json())
+            .then(data => {
+                centerSelect.innerHTML = '<option value="">اختر المركز</option>';
+                data.forEach(center => {
+                    const option = document.createElement("option");
+                    option.value = center.id;
+                    option.textContent = center.name;
+                    centerSelect.appendChild(option);
+                });
+            })
+            .catch(() => {
+                centerSelect.innerHTML = '<option value="">حدث خطأ</option>';
+            });
+    });
+});
+</script>
+
+</body>
+</html>

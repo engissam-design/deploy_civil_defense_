@@ -1,0 +1,176 @@
+:root {
+    --color-primary-text: #37597e;
+    --color-button: #2cabe2;
+    --color-white: #ffffff;
+    --color-background: #f9f9f9;
+    --color-dark-text: #000000;
+    --color-light-text: #606060;
+    --color-placeholder: #969696;
+    --font-family-main: 'GE SS Two', sans-serif;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    font-family: var(--font-family-main);
+    background-color: var(--color-background);
+    direction: rtl;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+.login-page {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 2rem;
+    overflow: hidden;
+    max-width: 1728px;
+    margin: 0 auto;
+}
+
+.login-page__bg {
+    position: absolute;
+    top: 0;
+    right: -244px;
+    height: 1117px;
+    width: 1107px;
+    z-index: 0;
+    object-fit: cover;
+}
+
+.login-page__content {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 120px;
+    width: 100%;
+}
+
+.login-form-container {
+    background-color: var(--color-white);
+    border-radius: 25px;
+    box-shadow: 0px 28px 29px 7px rgba(0, 0, 0, 0.04);
+    padding: 98px 100px;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    max-width: 571px;
+    flex-shrink: 0;
+}
+
+.login-title {
+    color: var(--color-primary-text);
+    font-size: 26px;
+    font-weight: 500;
+    line-height: 1.2;
+    margin-bottom: 30px;
+    text-align: center;
+}
+
+.login-form {
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+}
+
+.input-wrapper {
+    position: relative;
+}
+
+.input-field,
+input[type="text"],
+input[type="password"],
+input[type="email"] {
+    width: 100%;
+    background-color: #f3f5f7;
+    border: none !important;
+    border-radius: 10px !important;
+    padding: 17.5px 20px !important;
+    font-family: var(--font-family-main);
+    font-size: 18px;
+    font-weight: 500;
+    color: var(--color-primary-text);
+    text-align: right;
+}
+
+.password-icon {
+    position: absolute;
+    left: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 24px;
+    height: 24px;
+    cursor: pointer;
+}
+
+.forgot-password-link {
+    color: var(--color-placeholder);
+    font-size: 14px;
+    text-decoration: none;
+    align-self: flex-end;
+}
+
+.submit-button {
+    background-color: var(--color-button);
+    color: var(--color-white);
+    font-size: 20px;
+    font-weight: 500;
+    border-radius: 10px;
+    padding: 22px 40px;
+    border: none;
+    text-align: center;
+    cursor: pointer;
+}
+
+.branding-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 19px;
+}
+
+.brand-logo {
+    width: 307px;
+    height: 327px;
+}
+
+.brand-title {
+    color: var(--color-primary-text);
+    font-size: 28px;
+    font-weight: 700;
+}
+
+.brand-subtitle {
+    color: var(--color-dark-text);
+    font-size: 22px;
+    font-weight: 500;
+}
+
+@media (max-width: 1200px) {
+    .login-page__content {
+        flex-direction: column-reverse;
+        gap: 60px;
+    }
+    .login-page__bg {
+        display: none;
+    }
+}
+
+@media (max-width: 768px) {
+    .login-page {
+        padding: 1rem;
+    }
+    .login-form-container {
+        padding: 40px 20px;
+    }
+}

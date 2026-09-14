@@ -1,0 +1,33 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>إضافة مخصص وقود جديد</title>
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+    <style>
+        body { font-family: "Cairo", sans-serif; background: #f5f7fa; padding: 0; margin: 0; }
+        .container { max-width: 600px; margin: 30px auto; padding: 20px; }
+        .card { background: #fff; border-radius: 12px; padding: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); }
+        h1 { color: #333; text-align: center; }
+        form { display: flex; flex-direction: column; gap: 15px; }
+        input, select { padding: 10px; font-size: 14px; border-radius: 6px; border: 1px solid #ccc; }
+        button { padding: 10px; font-size: 15px; background: #4a90e2; color: #fff; border: none; border-radius: 8px; cursor: pointer; }
+        button:hover { background: #357ab7; }
+        .back-link { display: inline-block; margin-top: 10px; color: #4a90e2; text-decoration: none; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="card">
+            <h1>➕ إضافة مخصص وقود جديد</h1>
+            <form method="post">
+                {% csrf_token %}
+                {{ form.as_p }}
+                <button type="submit">حفظ</button>
+            </form>
+            <a href="{% url 'Fuel/fuel_quota_list' %}" class="back-link">⬅ العودة للقائمة</a>
+        </div>
+    </div>
+</body>
+</html>

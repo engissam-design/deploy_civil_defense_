@@ -1,0 +1,394 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>تعديل مركز عمليات</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <style>
+        body { font-family: Tahoma, sans-serif; margin: 40px; background: #f5f6fa; direction: rtl; text-align: right; }
+        .form-container { max-width: 900px; margin: auto; background: #fff; padding: 30px; border-radius: 12px; box-shadow: 0 6px 20px rgba(0,0,0,0.1); }
+        h2, h3, h4 { text-align: center; margin-bottom: 20px; color: #2c3e50; }
+        .section-card { background: #fff; border-radius: 12px; padding: 20px; box-shadow: 0 6px 15px rgba(0,0,0,0.05); margin-bottom: 25px; }
+        label { font-weight: bold; display: block; margin-top: 12px; }
+        input, textarea, select { width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #ccc; margin-top: 5px; box-sizing: border-box;}
+        textarea { resize: vertical; }
+        .btn-submit { background: linear-gradient(90deg, #27ae60, #2ecc71); color: white; padding: 12px; border: none; width: 100%; border-radius: 10px; font-size: 16px; font-weight: bold; cursor: pointer; transition: all 0.3s ease; margin-top: 15px; }
+        .btn-submit:hover { background: linear-gradient(90deg, #219150, #27ae60); transform: scale(1.03); }
+        .map-card { height: 400px; border-radius: 10px; margin-bottom: 10px; }
+        
+        /* Equipment & Files/Images Specific Styles */
+        .equipment-group-card { border: 1px solid #ddd; padding: 15px; border-radius: 8px; margin-bottom: 20px; background: #fcfcfc; }
+        .add-file-btn { background: #3498db; color: white; border: none; padding: 8px 15px; border-radius: 6px; cursor: pointer; margin-top: 10px; font-size: 14px; transition: background 0.3s; }
+        .add-file-btn:hover { background: #2980b9; }
+        
+        .file-item-wrapper, .image-item-wrapper { 
+            border: 1px solid #eee; padding: 10px; margin-bottom: 10px; border-radius: 6px;
+        }
+        .file-item-wrapper label, .image-item-wrapper label { font-weight: normal; margin-top: 0; }
+        
+        /* Toast Container */
+        #toast-container { position: fixed; top: 20px; right: 20px; z-index: 9999; }
+
+        /* Style for DELETE checkbox */
+        .delete-box { display: flex; align-items: center; margin-top: 10px; font-size: 14px;}
+        .delete-box label { font-weight: normal; margin-right: 10px; }
+        
+        /* Style for Django form errors */
+        .errorlist { color: red; font-size: 12px; list-style-type: none; padding: 0; margin-top: 5px; }
+        .errorlist li { margin-bottom: 2px; }
+    </style>
+</head>
+<body>
+
+<div id="toast-container">
+    {% if messages %}
+        {% for message in messages %}
+            <script>showToast("{{ message|escapejs }}", "{{ message.tags }}");</script>
+        {% endfor %}
+    {% endif %}
+</div>
+
+<div class="form-container">
+    <h2>✏️ تعديل مركز عمليات</h2>
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+
+        <div class="section-card">
+            <h3>📌 المعلومات الأساسية</h3>
+            {{ form.non_field_errors }}
+            <label>المحافظة</label>{{ form.governorate }} {{ form.governorate.errors }}
+            <label>اسم المركز</label>{{ form.center }} {{ form.center.errors }}
+            <label>الهدف</label>{{ form.objective }} {{ form.objective.errors }}
+            <label>الخدمات</label>{{ form.services }} {{ form.services.errors }}
+            <label>الهاتف الأرضي</label>{{ form.landline }} {{ form.landline.errors }}
+            <label>رقم الطوارئ</label>{{ form.emergency_number }} {{ form.emergency_number.errors }}
+            <label>الهاتف الخلوي</label>{{ form.mobile }} {{ form.mobile.errors }}
+       
+        </div>
+
+        <div class="section-card">
+            <h3>🌍 الموقع</h3>
+            <label>طريقة تحديد الموقع:</label>
+            <div class="location-methods">
+                <label class="radio-container"><input type="radio" name="location_method" id="manual" checked><span class="checkmark"></span> تحديد على الخريطة</label>
+                <label class="radio-container"><input type="radio" name="location_method" id="current"><span class="checkmark"></span> استخدام موقعي الحالي</label>
+            </div>
+            <p id="map-instruction" style="font-size:13px;color:#555;">انقر على الخريطة لتحديد الموقع يدويًا</p>
+            <div id="map" class="map-card"></div>
+            <label>العنوان</label><input type="text" id="address" readonly placeholder="سيتم تعبئته تلقائياً عند استخدام موقعك">
+            {{ form.latitude }}{{ form.longitude }}
+            {{ form.latitude.errors }}
+            {{ form.longitude.errors }}
+        </div>
+
+        <div class="section-card">
+            <h3>🖼️ صور المركز </h3>
+            {{ image_formset.management_form }}
+            <div id="image-formset-container">
+                {% for f in image_formset %}
+                    <div class="image-item-wrapper">
+                        {% for hidden in f.hidden_fields %}{{ hidden }}{% endfor %}
+                        
+                        {{ f.image.label_tag }} {{ f.image }}
+                        {{ f.caption.label_tag }} {{ f.caption }}
+                        
+                        {% if f.instance.pk %}
+                            <div class="delete-box">
+                                {{ f.DELETE.label_tag }} {{ f.DELETE }}
+                            </div>
+                        {% endif %}
+
+                        {% if f.errors %}
+                            <div class="errorlist">
+                                {% if f.image.errors %}{{ f.image.errors }}{% endif %}
+                                {% if f.caption.errors %}{{ f.caption.errors }}{% endif %}
+                                {{ f.non_field_errors }}
+                            </div>
+                        {% endif %}
+                    </div>
+                {% endfor %}
+            </div>
+            <button type="button" class="add-file-btn" id="add-image-form">
+                + إضافة صورة أخرى
+            </button>
+        </div>
+
+
+        <div class="section-card">
+            <h3>🛠️ إضافة المعدات (يدوياً) وقوائم الملفات المرفقة (متعددة)</h3>
+            
+            <div class="equipment-group-card">
+                <h4>🛻 معدات المركبة (يدوية وملفات مرفقة)</h4>
+                <label>{{ form.new_vehicle_equipment_text.label }}</label>
+                <div class="equipment-input-wrapper">
+                    {{ form.new_vehicle_equipment_text }}
+                </div>
+                
+                <hr style="margin: 15px 0; border: 0; border-top: 1px dashed #eee;">
+                
+                <h5>ملفات قائمة معدات المركبة</h5>
+                {{ vehicle_files_formset.management_form }}
+                <div id="vehicle-files-formset-container">
+                    {% for f in vehicle_files_formset %}
+                        <div class="file-item-wrapper">
+                            {% for hidden in f.hidden_fields %}{{ hidden }}{% endfor %}
+                            {{ f.file.label_tag }} {{ f.file }}
+                            {{ f.caption.label_tag }} {{ f.caption }}
+                            
+                            {% if f.instance.pk %}
+                                <div class="delete-box">
+                                    {{ f.DELETE.label_tag }} {{ f.DELETE }}
+                                </div>
+                            {% endif %}
+                            
+                            {% if f.errors %}
+                                <div class="errorlist">
+                                    {% if f.file.errors %}{{ f.file.errors }}{% endif %}
+                                    {% if f.caption.errors %}{{ f.caption.errors }}{% endif %}
+                                    {{ f.non_field_errors }}
+                                </div>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                </div>
+                <button type="button" class="add-file-btn" id="add-vehicle-file-form">
+                    + إضافة ملف قائمة مركبة آخر
+                </button>
+            </div>
+
+            <div class="equipment-group-card">
+                <h4>📦 معدات المخزن (يدوية وملفات مرفقة)</h4>
+                <label>{{ form.new_store_equipment_text.label }}</label>
+                <div class="equipment-input-wrapper">
+                    {{ form.new_store_equipment_text }}
+                </div>
+                
+                <hr style="margin: 15px 0; border: 0; border-top: 1px dashed #eee;">
+                
+                <h5>ملفات قائمة معدات المخزن</h5>
+                {{ store_files_formset.management_form }}
+                <div id="store-files-formset-container">
+                    {% for f in store_files_formset %}
+                        <div class="file-item-wrapper">
+                            {% for hidden in f.hidden_fields %}{{ hidden }}{% endfor %}
+                            {{ f.file.label_tag }} {{ f.file }}
+                            {{ f.caption.label_tag }} {{ f.caption }}
+                            
+                            {% if f.instance.pk %}
+                                <div class="delete-box">
+                                    {{ f.DELETE.label_tag }} {{ f.DELETE }}
+                                </div>
+                            {% endif %}
+                            
+                            {% if f.errors %}
+                                <div class="errorlist">
+                                    {% if f.file.errors %}{{ f.file.errors }}{% endif %}
+                                    {% if f.caption.errors %}{{ f.caption.errors }}{% endif %}
+                                    {{ f.non_field_errors }}
+                                </div>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                </div>
+                <button type="button" class="add-file-btn" id="add-store-file-form">
+                    + إضافة ملف قائمة مخزن آخر
+                </button>
+            </div>
+
+            <div class="equipment-group-card">
+                <h4>🏢 معدات المركز (يدوية وملفات مرفقة)</h4>
+                <label>{{ form.new_center_equipment_text.label }}</label>
+                <div class="equipment-input-wrapper">
+                    {{ form.new_center_equipment_text }}
+                </div>
+                
+                <hr style="margin: 15px 0; border: 0; border-top: 1px dashed #eee;">
+                
+                <h5>ملفات قائمة معدات المركز</h5>
+                {{ center_files_formset.management_form }}
+                <div id="center-files-formset-container">
+                    {% for f in center_files_formset %}
+                        <div class="file-item-wrapper">
+                            {% for hidden in f.hidden_fields %}{{ hidden }}{% endfor %}
+                            {{ f.file.label_tag }} {{ f.file }}
+                            {{ f.caption.label_tag }} {{ f.caption }}
+                            
+                            {% if f.instance.pk %}
+                                <div class="delete-box">
+                                    {{ f.DELETE.label_tag }} {{ f.DELETE }}
+                                </div>
+                            {% endif %}
+                            
+                            {% if f.errors %}
+                                <div class="errorlist">
+                                    {% if f.file.errors %}{{ f.file.errors }}{% endif %}
+                                    {% if f.caption.errors %}{{ f.caption.errors }}{% endif %}
+                                    {{ f.non_field_errors }}
+                                </div>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                </div>
+                <button type="button" class="add-file-btn" id="add-center-file-form">
+                    + إضافة ملف قائمة مركز آخر
+                </button>
+            </div>
+        </div>
+
+        <button type="submit" class="btn-submit">💾 حفظ التعديلات</button>
+    </form>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+// --- 1. وظيفة الإشعارات (Toast) ---
+function showToast(message, type="success") {
+    const toast = document.createElement("div");
+    toast.innerText = message;
+    toast.style.minWidth = "250px";
+    toast.style.marginTop = "10px";
+    toast.style.padding = "12px 20px";
+    toast.style.borderRadius = "8px";
+    toast.style.color = type.includes("success") ? "#155724" : "#721c24";
+    toast.style.backgroundColor = type.includes("success") ? "#d4edda" : "#f8d7da";
+    toast.style.border = type.includes("success") ? "1px solid #c3e6cb" : "1px solid #f5c6cb";
+    toast.style.boxShadow = "0 4px 12px rgba(0,0,0,0.1)";
+    toast.style.fontSize = "14px";
+    toast.style.opacity = "0";
+    toast.style.transition = "opacity 0.5s ease, transform 0.5s ease";
+    toast.style.transform = "translateX(100%)";
+
+    document.getElementById("toast-container").appendChild(toast);
+    setTimeout(() => { toast.style.opacity="1"; toast.style.transform="translateX(0)"; }, 100);
+    setTimeout(() => {
+        toast.style.opacity="0";
+        toast.style.transform="translateX(100%)";
+        setTimeout(() => toast.remove(), 500);
+    }, 4000);
+}
+
+
+// --- 2. وظيفة إضافة FormSet ديناميكياً (للصور والملفات) ---
+
+// دالة لتنفيذ عملية الإضافة
+function addForm(buttonId, containerId, prefix) {
+    document.getElementById(buttonId).addEventListener('click', function() {
+        const container = document.getElementById(containerId);
+        // البحث عن حقل TOTAL_FORMS داخل الـ section-card أو equipment-group-card الأب
+        const managementForm = document.querySelector(`#${containerId}`).closest('div.section-card, div.equipment-group-card').querySelector(`input[name$='-TOTAL_FORMS']`);
+        
+        if (!managementForm) {
+            showToast(`خطأ: لم يتم العثور على حقل TOTAL_FORMS لـ ${prefix}.`, 'error');
+            return;
+        }
+
+        const totalForms = parseInt(managementForm.value);
+        let newIndex = totalForms;
+
+        // ⚠️ الكود أدناه يعتمد على أن حقل الملف إما 'image' أو 'file'
+        const fileFieldName = prefix.includes('image') ? 'image' : 'file';
+        const fileLabel = prefix.includes('image') ? 'صورة:' : 'ملف/صورة:';
+        
+        let newFormHtml = `
+            <div class="${prefix.includes('image') ? 'image-item-wrapper' : 'file-item-wrapper'}">
+                <input type="hidden" name="${prefix}-${newIndex}-id" id="id_${prefix}-${newIndex}-id">
+                <input type="hidden" name="${prefix}-${newIndex}-operation" id="id_${prefix}-${newIndex}-operation">
+                
+                <label for="id_${prefix}-${newIndex}-${fileFieldName}">${fileLabel}</label>
+                <input type="file" name="${prefix}-${newIndex}-${fileFieldName}" id="id_${prefix}-${newIndex}-${fileFieldName}">
+                
+                <label for="id_${prefix}-${newIndex}-caption">وصف:</label>
+                <input type="text" name="${prefix}-${newIndex}-caption" id="id_${prefix}-${newIndex}-caption">
+            </div>
+        `;
+        
+        container.insertAdjacentHTML('beforeend', newFormHtml);
+        
+        // تحديث TOTAL_FORMS
+        managementForm.value = totalForms + 1;
+    });
+}
+
+// ربط الأزرار بالـ FormSets
+document.addEventListener('DOMContentLoaded', () => {
+    addForm('add-image-form', 'image-formset-container', 'images');
+    addForm('add-vehicle-file-form', 'vehicle-files-formset-container', 'vehicle_files');
+    addForm('add-store-file-form', 'store-files-formset-container', 'store_files');
+    addForm('add-center-file-form', 'center-files-formset-container', 'center_files');
+});
+
+
+// --- 3. وظيفة الخريطة (Leaflet) ---
+var map = L.map('map').setView([31.5, 34.5], 8);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 18 }).addTo(map);
+var marker = L.marker([31.5, 34.5], { draggable: true }).addTo(map);
+
+function updateLatLng(lat, lng){
+    document.getElementById("id_latitude").value = lat.toFixed(6);
+    document.getElementById("id_longitude").value = lng.toFixed(6);
+}
+
+map.on('click', function(e){
+    if(document.getElementById("manual").checked){
+        var lat = e.latlng.lat;
+        var lng = e.latlng.lng;
+        marker.setLatLng([lat, lng]);
+        updateLatLng(lat, lng);
+    }
+});
+
+marker.on('dragend', function(){
+    if(document.getElementById("manual").checked){
+        var lat = marker.getLatLng().lat;
+        var lng = marker.getLatLng().lng;
+        updateLatLng(lat, lng);
+    }
+});
+
+// معالجة اختيار طريقة تحديد الموقع
+document.querySelectorAll('input[name="location_method"]').forEach(radio => {
+    radio.addEventListener("change", function() {
+        if(this.id === "current" && this.checked){
+            // استخدام الموقع الحالي
+            if(navigator.geolocation){
+                navigator.geolocation.getCurrentPosition(function(position){
+                    var lat = position.coords.latitude;
+                    var lng = position.coords.longitude;
+                    marker.setLatLng([lat, lng]);
+                    map.setView([lat, lng], 15);
+                    updateLatLng(lat, lng);
+
+                    // Reverse Geocoding
+                    // استخدام Nominatim للحصول على العنوان من الإحداثيات
+                    fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`)
+                        .then(res=>res.json()).then(data=>{
+                            document.getElementById("address").value = data.display_name;
+                        });
+                }, function(error) {
+                    showToast("فشل تحديد الموقع: " + error.message, "error");
+                });
+            } else {
+                showToast("متصفحك لا يدعم تحديد الموقع الجغرافي.", "error");
+            }
+        } else if(this.id === "manual" && this.checked){
+            // التحديد اليدوي
+            document.getElementById("address").value = "";
+        }
+    });
+});
+
+// تحديث الإحداثيات الأولية عند تحميل الصفحة
+if (document.getElementById("id_latitude").value && document.getElementById("id_longitude").value) {
+    var initialLat = parseFloat(document.getElementById("id_latitude").value);
+    var initialLng = parseFloat(document.getElementById("id_longitude").value);
+    if (!isNaN(initialLat) && !isNaN(initialLng)) {
+        map.setView([initialLat, initialLng], 12);
+        marker.setLatLng([initialLat, initialLng]);
+    }
+} else {
+    updateLatLng(marker.getLatLng().lat, marker.getLatLng().lng);
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,98 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>قائمة مخصصات الوقود</title>
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+    <style>
+        body {
+            font-family: "Cairo", sans-serif;
+            background: #f5f7fa;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 30px auto;
+            padding: 20px;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        table th, table td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: center;
+            font-size: 14px;
+        }
+
+        table th {
+            background: #f0f4f8;
+            font-weight: bold;
+        }
+
+        a {
+            text-decoration: none;
+            color: #4a90e2;
+            font-weight: bold;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    
+   <div class="container">
+    <h1>⛽ قائمة مخصصات الوقود</h1>
+
+    <a href="{% url 'Fuel/fuel_quota_add' %}" 
+       style="display:inline-block; margin-bottom:15px; padding:10px 15px; background:#4a90e2; color:#fff; border-radius:8px; text-decoration:none;">
+       ➕ إضافة مخصص جديد
+    </a>
+
+ <table>
+    <thead>
+        <tr>
+            <th>#</th> <th>المركبة</th>
+            <th>الشهر</th>
+            <th>الكمية المخصصة</th>
+            <th>المبلغ المخصص</th>
+            <th>المستهلك</th>
+            <th>المتبقي</th>
+            <th>تفاصيل</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for quota in quotas %}
+        <tr>
+            <td>{{ forloop.counter }}</td> <td>{{ quota.vehicle.vehicle_number }}</td>
+            <td>{{ quota.month|date:"F Y" }}</td>
+            <td>{{ quota.allocated_quantity }} لتر</td>
+            <td>{{ quota.allocated_amount }} شيكل</td>
+            <td>{{ quota.used_quantity }} لتر / {{ quota.used_amount }} شيكل</td>
+            <td>{{ quota.remaining_quantity }} لتر / {{ quota.remaining_amount }} شيكل</td>
+            <td><a href="{% url 'Fuel/fuel_quota_detail' quota.id %}">عرض</a></td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="8">لا توجد مخصصات وقود مسجلة.</td> </tr>
+        {% endfor %}
+    </tbody>
+</table>
+</div>
+
+</body>
+</html>

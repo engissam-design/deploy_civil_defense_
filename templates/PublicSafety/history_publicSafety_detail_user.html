@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>تفاصيل السجل</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css">
+</head>
+<body>
+<div class="container mt-5 text-right">
+    <h3 class="mb-3">🧾 تفاصيل السجل: {{ record.owner_name }}</h3>
+
+    <ul class="list-group mb-4">
+        <li class="list-group-item">رقم الهوية: {{ record.national_id }}</li>
+        <li class="list-group-item">المدينة: {{ record.city }}</li>
+        <li class="list-group-item">اسم المشروع: {{ record.business_name }}</li>
+        <li class="list-group-item">العنوان: {{ record.manual_address }}</li>
+        <li class="list-group-item">رقم الوصل: {{ record.receipt_number }}</li>
+        <li class="list-group-item">من تاريخ: {{ record.start_date }}</li>
+        <li class="list-group-item">إلى تاريخ: {{ record.end_date }}</li>
+    </ul>
+
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+
+        <div class="mb-3">
+            <label for="receipt_images">🖼️ رفع صور الوصل:</label>
+            <input type="file" name="receipt_images" multiple class="form-control" required>
+        </div>
+
+        <div class="mb-3">
+            <label for="doc_images">📄 رفع صور الأوراق اللازمة:</label>
+            <input type="file" name="doc_images" multiple class="form-control" required>
+        </div>
+
+        <button type="submit" class="btn btn-success">💾 حفظ الصور</button>
+        
+    </form>
+<div class="mt-4">
+    <h5>🖼️ صور الوصل المرفوعة:</h5>
+    <div class="d-flex flex-wrap">
+        {% for img in record.receipt_images.all %}
+            <div class="m-2">
+                <img src="{{ img.image.url }}" alt="صورة وصل" style="max-width:150px; max-height:150px; object-fit: cover; border:1px solid #ccc; border-radius:5px;">
+            </div>
+        {% empty %}
+            <p>لا توجد صور وصل مرفوعة.</p>
+        {% endfor %}
+    </div>
+</div>
+
+<div class="mt-4">
+    <h5>📄 صور الأوراق اللازمة المرفوعة:</h5>
+    <div class="d-flex flex-wrap">
+        {% for img in record.required_docs_images.all %}
+            <div class="m-2">
+                <img src="{{ img.image.url }}" alt="صورة ورقة" style="max-width:150px; max-height:150px; object-fit: cover; border:1px solid #ccc; border-radius:5px;">
+            </div>
+        {% empty %}
+            <p>لا توجد صور أوراق مرفوعة.</p>
+        {% endfor %}
+    </div>
+</div>
+
+</div>
+</body>
+</html>

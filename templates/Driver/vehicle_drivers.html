@@ -1,0 +1,139 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>سائقي المركبة {{ vehicle.vehicle_number }}</title>
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+    <style>
+        body {
+            font-family: "Tahoma", sans-serif;
+            background: #f4f6f9;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+        }
+        h2 {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #16a085;
+            font-size: 28px;
+        }
+        .cards-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            justify-content: center;
+        }
+        .card {
+            background: #fff;
+            border-radius: 16px;
+            box-shadow: 0 4px 14px rgba(0,0,0,0.12);
+            padding: 20px;
+            width: 250px;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .card:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.18);
+        }
+        .card h3 {
+            margin: 0 0 12px;
+            font-size: 20px;
+            color: #2c3e50;
+            text-align: center;
+        }
+        .info {
+            font-size: 16px;
+            margin: 6px 0;
+        }
+        .info span {
+            font-weight: bold;
+            color: #16a085;
+        }
+
+        .no-drivers {
+            text-align: center;
+            color: #e74c3c;
+            font-size: 18px;
+            margin-top: 40px;
+        }
+
+        /* زر العودة */
+        .btn-back {
+            display: inline-block;
+            margin: 20px auto;
+            padding: 10px 20px;
+            background: #2c3e50;
+            color: #fff;
+            border-radius: 8px;
+            text-decoration: none;
+            font-size: 16px;
+            transition: background 0.3s;
+        }
+        .btn-back:hover {
+            background: #1a252f;
+        }
+    </style>
+</head>
+<body>
+<div style="
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    background:#f8f9fa;
+    padding:10px 20px;
+    border-radius:10px;
+    box-shadow:0 2px 8px #ddd;
+    direction:rtl;
+">
+
+    <h6 style="
+        margin:0;
+        color:#333;
+        font-weight:bold;
+    ">
+        👤 مرحباً {{ request.user.username }}
+    </h6>
+
+
+    <form method="post" action="{% url 'logout' %}">
+        {% csrf_token %}
+        <button type="submit" style="
+            background:#dc3545;
+            color:white;
+            border:none;
+            padding:7px 15px;
+            border-radius:6px;
+            cursor:pointer;
+        ">
+             تسجيل الخروج
+        </button>
+    </form>
+
+</div>
+<h2>👤 سائقي المركبة {{ vehicle.vehicle_number }}</h2>
+           <a href="/vehicles/?source=maintenance"
+       style="display:inline-block; margin-right:10px; padding:10px 15px; background:#34495e; color:white; border-radius:6px; text-decoration:none;">
+رجوع 
+   </a>
+{% if drivers %}
+<div class="cards-container">
+    {% for driver in drivers %}
+    <div class="card">
+        <h3>{{ driver.name }}</h3>
+        {% comment %} <div class="info">رقم الهوية: <span>{{ driver.id_number }}</span></div>
+        <div class="info">الهاتف: <span>{{ driver.phone }}</span></div> {% endcomment %}
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<p class="no-drivers">لا يوجد سائقين مرتبطين بهذه المركبة.</p>
+{% endif %}
+
+<div style="text-align:center;">
+    <a href="{% url 'Vehicle/vehicle_list' %}" class="btn-back">⬅ العودة لقائمة المركبات</a>
+</div>
+
+</body>
+</html>

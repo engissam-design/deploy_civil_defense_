@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<title>تفاصيل العنصر</title>
+
+<style>
+    body {
+        font-family: 'Tahoma', sans-serif;
+        background: #eef2f7;
+        margin: 0;
+        padding: 20px;
+        color: #333;
+    }
+
+    .card {
+        background: #fff;
+        padding: 25px 30px;
+        border-radius: 15px;
+        box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+        max-width: 1000px;
+        margin: auto;
+        margin-bottom: 40px;
+    }
+
+    h1 {
+        font-size: 28px;
+        color: #2c3e50;
+        margin-bottom: 15px;
+    }
+
+    h2 {
+        font-size: 22px;
+        margin-top: 30px;
+        margin-bottom: 15px;
+        color: #34495e;
+        border-bottom: 2px solid #3498db;
+        padding-bottom: 5px;
+    }
+
+    .info p {
+        font-size: 16px;
+        margin: 6px 0;
+    }
+
+    .info strong {
+        color: #2c3e50;
+        width: 140px;
+        display: inline-block;
+    }
+
+    .details-table, table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 15px;
+        margin-bottom: 15px;
+    }
+
+    .details-table td {
+        padding: 10px 12px;
+        border-bottom: 1px solid #ddd;
+        font-size: 15px;
+    }
+
+    table th, table td {
+        padding: 12px;
+        border: 1px solid #ddd;
+        text-align: center;
+        font-size: 15px;
+    }
+
+    table th {
+        background: #3498db;
+        color: #fff;
+        font-weight: 600;
+    }
+
+    tr:nth-child(even) { background: #f9f9f9; }
+    tr.off-day { background: #ffe6e6 !important; }
+
+    textarea {
+        width: 100%;
+        padding: 8px;
+        border-radius: 6px;
+        border: 1px solid #ccc;
+        resize: vertical;
+        font-size: 14px;
+    }
+
+    input[type="text"], input[type="date"] {
+        width: 100%;
+        padding: 7px 10px;
+        border-radius: 6px;
+        border: 1px solid #ccc;
+        font-size: 14px;
+        box-sizing: border-box;
+    }
+
+    .form-group {
+        margin-bottom: 12px;
+    }
+
+    .btn-save {
+        margin-top: 15px;
+        padding: 12px 20px;
+        background: #27ae60;
+        color: #fff;
+        border: none;
+        border-radius: 8px;
+        font-size: 16px;
+        cursor: pointer;
+        transition: 0.3s;
+    }
+
+    .btn-save:hover { background: #1e8449; }
+
+    .btn-back {
+        display: inline-block;
+        margin-top: 25px;
+        padding: 10px 18px;
+        background: #3498db;
+        border-radius: 8px;
+        transition: 0.3s;
+        color: #fff;
+    }
+
+    .btn-back:hover { background: #2980b9; }
+
+    /* Card sections */
+    .section-card {
+        background: #f9fafd;
+        padding: 20px;
+        border-radius: 12px;
+        box-shadow: 0 3px 10px rgba(0,0,0,0.05);
+        margin-bottom: 25px;
+    }
+/* datetime picker style */
+.dt-input {
+    width: 100%;
+    padding: 10px 14px;
+    border-radius: 10px;
+    border: 1.5px solid #cfd8dc;
+    font-size: 14px;
+    font-family: 'Tahoma', sans-serif;
+    background-color: #fdfefe;
+    color: #2c3e50;
+    transition: 0.3s;
+} 
+
+/* عند التركيز */
+.dt-input:focus {
+    outline: none;
+    border-color: #3498db;
+    box-shadow: 0 0 0 3px rgba(52,152,219,0.15);
+    background-color: #fff;
+}
+
+/* تغيير لون أيقونة الساعة (Chrome / Edge) */
+.dt-input::-webkit-calendar-picker-indicator {
+    cursor: pointer;
+    filter: invert(40%) sepia(80%) saturate(300%) hue-rotate(180deg);
+}
+
+/* عند التعطيل */
+.dt-input:disabled {
+    background: #f1f1f1;
+    color: #999;
+}
+
+    /* Tables */
+    table th, table td {
+        text-align: center;
+        padding: 10px;
+        font-size: 14px;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        h1 { font-size: 24px; }
+        h2 { font-size: 20px; }
+        .info p { font-size: 14px; }
+        table th, table td { font-size: 13px; padding: 8px; }
+        input, textarea { font-size: 13px; }
+    }
+    @media (max-width: 768px) {
+    .dt-input {
+        font-size: 13px;
+        padding: 9px 12px;
+    }
+}
+
+</style>
+</head>
+<body>
+
+
+<div class="card">
+
+
+<a href="{% url 'Employees/employees_by_operation' %}?operation={{ employee.operation.id }}" class="btn-back">
+ رجوع
+</a>
+
+
+    <h1> تفاصيل عن العنصر</h1>
+    <div class="info section-card">
+        <p><strong>الاسم:</strong> {{ employee.name }}</p>
+        <p><strong>رقم الجوال:</strong> {{ employee.mobile }}</p>
+        <p><strong>مكان السكن:</strong> {{ employee.address }}</p>
+        <p><strong>المركز:</strong> {{ employee.operation }}</p>
+    </div>
+
+   <h2>تفاصيل إضافية</h2>
+    <div class="section-card">
+        <table class="details-table">
+            <tr><td>رتبة العنصر</td><td>{{ employee.rank }}</td></tr>
+            <tr><td>تاريخ الرتبة</td><td>{{ employee.rank_date }}</td></tr>
+            <tr><td>المستوى العلمي</td><td>{{ employee.education_level }}</td></tr>
+            
+            <tr><td>الوصف الوظيفي</td><td>
+                {% if employee.job_description %}
+                    <p >{{ employee.job_description }}</p>
+                {% else %}
+                    -
+                {% endif %}
+            </td></tr>
+            
+        </table>
+    </div>
+
+    <h2>الشهادات / الدورات</h2>
+    <div class="section-card">
+        <table>
+            <tr>
+                <th>اسم الشهادة/الدورة</th>
+                <th>تاريخ الحصول عليها</th>
+                <th>الملف</th>
+            </tr>
+            {% for cert in employee.certificates.all %}
+            <tr>
+                <td>{{ cert.name }}</td>
+                <td>{{ cert.date }}</td>
+                <td>
+                    {% if cert.file %}
+                        <a href="{{ cert.file.url }}" target="_blank">عرض الملف</a>
+                    {% else %}-{% endif %}
+                </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="3">لا توجد شهادات/دورات</td></tr>
+            {% endfor %}
+        </table>
+    </div>
+
+ 
+
+
+
+
+    {% comment %} <a href="{% url 'Operation/operation_detail' employee.operation.pk %}" class="btn-back">⬅ العودة إلى المركز</a> {% endcomment %}
+</div>
+</body>
+</html>

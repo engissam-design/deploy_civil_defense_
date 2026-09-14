@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<title>المرتب في مركز {{ operation.center }}</title>
+<style>
+    body {
+        font-family: 'Tahoma', sans-serif;
+        background: #f4f6f8;
+        padding: 20px;
+        color: #333;
+    }
+
+    .card {
+        background: #fff;
+        max-width: 900px;
+        margin: auto;
+        padding: 30px 35px;
+        border-radius: 15px;
+        box-shadow: 0 6px 20px rgba(0,0,0,0.1);
+    }
+
+    h1 {
+        margin-top: 0;
+        text-align: center;
+        color: #2c3e50;
+    }
+
+    .stats {
+        text-align: center;
+        margin-bottom: 20px;
+        font-size: 18px;
+        color: #555;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 10px;
+        font-size: 16px;
+    }
+
+    th, td {
+        padding: 12px;
+        border: 1px solid #ddd;
+        text-align: center;
+    }
+
+    th {
+        background: #3498db;
+        color: #fff;
+        font-weight: 500;
+    }
+
+    tr:nth-child(even) { background: #f9f9f9; }
+
+    tr.off-today { background: #ffe6e6; }
+
+    a.btn-detail {
+        display: inline-block;
+        padding: 6px 12px;
+        background: #27ae60;
+        color: #fff;
+        border-radius: 6px;
+        text-decoration: none;
+        font-size: 14px;
+        transition: 0.3s;
+    }
+
+    a.btn-detail:hover { background: #1e8449; }
+
+    @media (max-width: 600px) {
+        table, th, td { font-size: 14px; padding: 8px; }
+        .stats { font-size: 16px; }
+    }
+</style>
+</head>
+<body>
+    <div class="card">
+        <h1>المرتب في مركز {{ operation.center }}</h1>
+    <div style="text-align: center; margin-bottom: 20px;">
+<a href="{% url 'Employees/add_employee' %}?operation={{ operation.id }}" 
+   style="
+        display: inline-block;
+        padding: 10px 20px;
+        background-color: #3498db;
+        color: white;
+        font-weight: bold;
+        border-radius: 8px;
+        text-decoration: none;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        font-size: 16px;
+        transition: background-color 0.3s;
+   "
+   onmouseover="this.style.backgroundColor='#2980b9'" 
+   onmouseout="this.style.backgroundColor='#3498db'">
+    ➕ إضافة عنصر جديد
+</a>
+
+<!-- <a href="{% url 'Employees/working_today_employees' operation.id %}" 
+   style="
+        display: inline-block;
+        padding: 10px 20px;
+        background-color: #27ae60;
+        color: white;
+        font-weight: bold;
+        border-radius: 8px;
+        text-decoration: none;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        font-size: 16px;
+        margin-right: 10px;
+        transition: background-color 0.3s;
+   "
+   onmouseover="this.style.backgroundColor='#1e8449'" 
+   onmouseout="this.style.backgroundColor='#27ae60'">
+    👀 رؤية المرتب المداومين اليوم
+</a> -->
+
+<!-- زر الرجوع إلى العمليات -->
+<a href="{% url 'Operation/operations_map' %}" 
+   style="
+        display: inline-block;
+        padding: 10px 20px;
+        background-color: #7f8c8d;
+        color: white;
+        font-weight: bold;
+        border-radius: 8px;
+        text-decoration: none;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        font-size: 16px;
+        margin-right: 10px;
+        transition: background-color 0.3s;
+   "
+   onmouseover="this.style.backgroundColor='#626567'" 
+   onmouseout="this.style.backgroundColor='#7f8c8d'">
+  رجوع
+</a>
+    </div>
+
+        <div class="stats">
+            كل المرتب: {{ total_employees }} 
+        </div>
+
+      <table>
+    <thead>
+        <tr>
+            <th>#</th> <th>الاسم</th>
+            <th>رقم الجوال</th>
+            <th>تفاصيل</th> 
+        </tr>
+    </thead>
+    <tbody>
+        {% for emp in employees %}
+        <tr class="{% if emp.off_today %}off-today{% endif %}">
+            <td>{{ forloop.counter }}</td> <td>{{ emp.name }}</td>
+            <td>{{ emp.mobile }}</td>
+            <td>
+                <a class="btn-detail" href="{% url 'Employees/employee_detail' emp.pk %}">عرض التفاصيل</a>
+            </td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="4">لا يوجد موظفين في هذا المركز</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+    </div>
+</body>
+</html>
