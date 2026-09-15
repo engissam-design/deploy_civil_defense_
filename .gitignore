@@ -9,3 +9,11 @@ media/
 staticfiles/
 .vscode/
 .idea/
+media/
+*.mp4
+
+*.pyc
+db.sqlite3
+.envgit commit -m "activeNotification"
+
+.continue/

@@ -52,7 +52,7 @@ AUTH_USER_MODEL = 'map.CustomUser'  # هذا مهم جداً
 
 CHANNEL_LAYERS = {
     "default": {
-        "BACKEND": "channels_redis.core.RedisChannelLayer",
+        "BACKEND": "channels_redis.pubsub.RedisPubSubChannelLayer",
         "CONFIG": {
             "hosts": ["redis://127.0.0.1:6379/0?protocol=2"],
         },
@@ -143,7 +143,6 @@ CACHES = {
         "LOCATION": "redis://127.0.0.1:6379/1?protocol=2",
     }
 }
-
 
 
 CRISPY_TEMPLATE_PACK = 'bootstrap4'
