@@ -12,10 +12,7 @@ from .models import (
 
 
 logger = logging.getLogger(__name__)
-
 User = get_user_model()
-
-
 def notify_governorate_directors(
     operation,
     editor_name
@@ -503,3 +500,295 @@ def notify_governorate_directors(
     print("=" * 80)
 
 
+def notify_attendance_approval(operation, approved_by):
+    """
+    إرسال إشعار إلى المسؤولين عن دوام هذا المركز
+    (من يملكون صلاحية can_manage_center_attendance
+    على هذا المركز تحديداً) بأن اعتماد الدوام
+    قد تم من قبل إدارة المديرية.
+    """
+
+    print("")
+    print("=" * 80)
+    print("🔔 START NOTIFY ATTENDANCE APPROVAL")
+    print("=" * 80)
+
+    governorate = operation.center.governorate
+
+    # =========================================================
+    # 1. جلب التعيينات المرتبطة بهذا المركز تحديداً
+    # =========================================================
+
+    assignments = (
+        UserAssignment.objects
+        .filter(
+            unit__linked_center=operation.center,
+            unit__linked_governorate=governorate,
+            is_active=True
+        )
+        .select_related(
+            "user",
+            "unit",
+            "unit__linked_center",
+            "unit__linked_governorate",
+        )
+    )
+
+    print(f"📋 عدد التعيينات: {assignments.count()}")
+
+    recipients = {}
+
+    for assignment in assignments:
+
+        user = assignment.user
+
+        if not user or not user.is_active:
+            continue
+
+        try:
+            has_permission = user.has_perm(
+                "map.can_manage_center_attendance"
+            )
+        except Exception:
+            logger.exception(
+                "Permission check failed for user=%s",
+                user.username
+            )
+            continue
+
+        if not has_permission:
+            continue
+
+        recipients[user.id] = user
+
+    print(f"📋 عدد المستلمين: {len(recipients)}")
+
+    if not recipients:
+        print("❌ لا يوجد مستلمين مطابقين للشروط.")
+        print("=" * 80)
+        return
+
+    # =========================================================
+    # 2. نص الإشعار
+    # =========================================================
+
+    approver_name = (
+        approved_by.get_full_name()
+        or approved_by.username
+    )
+
+    message_text = (
+        f"تم اعتماد دوام مركز "
+        f"({operation.center.name}) "
+        f"من قبل إدارة المديرية "
+        f"بواسطة: {approver_name}"
+    )
+
+    print(f"📝 Notification message: {message_text}")
+
+    # =========================================================
+    # 3. Channel Layer
+    # =========================================================
+
+    try:
+        channel_layer = get_channel_layer()
+    except Exception:
+        logger.exception("Could not get channel layer")
+        channel_layer = None
+
+    # =========================================================
+    # 4. إرسال الإشعارات
+    # =========================================================
+
+    for user_id, user in recipients.items():
+
+        try:
+            notification = AttendanceSystemNotification.objects.create(
+                user=user,
+                message=message_text
+            )
+        except Exception:
+            logger.exception(
+                "Notification database creation failed for user=%s",
+                user.username
+            )
+            continue
+
+        if channel_layer is None:
+            continue
+
+        try:
+            group_name = f"user_{user.id}"
+
+            created_at = (
+                timezone.localtime(notification.created_at)
+                .strftime("%Y-%m-%d, %H:%M")
+            )
+
+            async_to_sync(channel_layer.group_send)(
+                group_name,
+                {
+                    "type": "send_notification",
+                    "message": notification.message,
+                    "id": notification.id,
+                    "created_at": created_at,
+                }
+            )
+
+        except Exception:
+            logger.exception(
+                "WebSocket notification failed for user=%s",
+                user.username
+            )
+
+    print("=" * 80)
+    print("✅ END NOTIFY ATTENDANCE APPROVAL")
+    print("=" * 80)
+
+
+
+def notify_pending_approval(operation):
+    """
+    إرسال إشعار إلى مدراء المحافظة المختصين
+    بأن دوام هذا المركز لم يُعتمد بعد حتى الساعة 12.
+
+    شروط المستلم: نفس شروط notify_governorate_directors
+    (مدير محافظة + صلاحية الاعتماد + نفس المحافظة).
+    """
+
+    print("")
+    print("=" * 80)
+    print("🔔 START NOTIFY PENDING APPROVAL")
+    print(f"Operation={operation.id}")
+    print("=" * 80)
+
+    governorate = operation.center.governorate
+
+    # =========================================================
+    # 1. جلب التعيينات
+    # =========================================================
+
+    assignments = (
+        UserAssignment.objects
+        .filter(
+            unit__linked_governorate=governorate,
+            is_active=True
+        )
+        .select_related(
+            "user",
+            "role",
+            "unit",
+            "unit__linked_governorate",
+        )
+    )
+
+    directors = {}
+
+    for assignment in assignments:
+
+        user = assignment.user
+        role = assignment.role
+        unit = assignment.unit
+
+        if not user or not user.is_active:
+            continue
+
+        if not role or role.name != "مدير المحافظة":
+            continue
+
+        try:
+            has_permission = user.has_perm(
+                "map.can_approve_directorate_attendance"
+            )
+        except Exception:
+            logger.exception(
+                "Permission check failed for user=%s",
+                user.username
+            )
+            continue
+
+        if not has_permission:
+            continue
+
+        if not unit or unit.linked_governorate != governorate:
+            continue
+
+        directors[user.id] = user
+
+    print(f"📋 عدد المستلمين: {len(directors)}")
+
+    if not directors:
+        print("❌ لا يوجد أي مدير محافظة مطابق للشروط.")
+        print("=" * 80)
+        return
+
+    # =========================================================
+    # 2. نص الإشعار
+    # =========================================================
+
+    message_text = (
+        f"تنبيه: لم يتم اعتماد دوام مركز "
+        f"({operation.center.name}) "
+        f"حتى الساعة 12 ظهراً لليوم."
+    )
+
+    print(f"📝 Notification message: {message_text}")
+
+    # =========================================================
+    # 3. Channel Layer
+    # =========================================================
+
+    try:
+        channel_layer = get_channel_layer()
+    except Exception:
+        logger.exception("Could not get channel layer")
+        channel_layer = None
+
+    # =========================================================
+    # 4. إرسال الإشعارات
+    # =========================================================
+
+    for user_id, user in directors.items():
+
+        try:
+            notification = AttendanceSystemNotification.objects.create(
+                user=user,
+                message=message_text
+            )
+        except Exception:
+            logger.exception(
+                "Notification database creation failed for user=%s",
+                user.username
+            )
+            continue
+
+        if channel_layer is None:
+            continue
+
+        try:
+            group_name = f"user_{user.id}"
+
+            created_at = (
+                timezone.localtime(notification.created_at)
+                .strftime("%Y-%m-%d, %H:%M")
+            )
+
+            async_to_sync(channel_layer.group_send)(
+                group_name,
+                {
+                    "type": "send_notification",
+                    "message": notification.message,
+                    "id": notification.id,
+                    "created_at": created_at,
+                }
+            )
+
+        except Exception:
+            logger.exception(
+                "WebSocket notification failed for user=%s",
+                user.username
+            )
+
+    print("=" * 80)
+    print("✅ END NOTIFY PENDING APPROVAL")
+    print("=" * 80)

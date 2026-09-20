@@ -973,60 +973,44 @@
          Page Header
     ========================== -->
 
-    <header class="page-header">
+  <header class="page-header">
+    <div>
+        <h1 class="page-title">
+            دوام المرتب : {{ operation.center }}
+        </h1>
 
-        <div>
+        {% if is_manager or is_duty_officer %}
+            <a href="{% url 'attendance_approvals_overview' %}"
+               class="btn btn-outline"
+               style="margin-top: 10px; display: inline-flex;">
+                <i class="fa-solid fa-list-check"></i>
+                عرض جميع الاعتمادات
+            </a>
+        {% endif %}
+    </div>
 
-            <h1 class="page-title">
-                دوام المرتب : {{ operation.center }}
-            </h1>
+    <div>
+        {% if last_update %}
+            <span style="
+                font-size: 0.8rem;
+                color: var(--text-muted);
+                background: #f1f5f9;
+                padding: 6px 12px;
+                border-radius: 20px;
+                border: 1px solid var(--border-color);
+            ">
+                <i class="fa-regular fa-clock"></i>
+                آخر تحديث: {{ last_update|date:"Y-m-d H:i" }}
 
-        </div>
-
-
-        <div>
-
-            {% if last_update %}
-
-                <span
-                    style="
-                    font-size: 0.8rem;
-                    color: var(--text-muted);
-                    background: #f1f5f9;
-                    padding: 6px 12px;
-                    border-radius: 20px;
-                    border: 1px solid var(--border-color);
-                    ">
-
-                    <i class="fa-regular fa-clock"></i>
-
-                    آخر تحديث:
-                    {{ last_update|date:"Y-m-d H:i" }}
-
-
-                    {% if last_duty_officer %}
-
-                        |
-
-                        <i
-                            class="fa-solid fa-user-shield"
-                            style="color: var(--primary-color);">
-                        </i>
-
-                        بواسطة:
-                        {{ last_duty_officer }}
-
-                    {% endif %}
-
-                </span>
-
-            {% endif %}
-
-        </div>
-
-    </header>
-
-
+                {% if last_duty_officer %}
+                    |
+                    <i class="fa-solid fa-user-shield" style="color: var(--primary-color);"></i>
+                    بواسطة: {{ last_duty_officer }}
+                {% endif %}
+            </span>
+        {% endif %}
+    </div>
+</header>
     <!-- =========================
          Attendance Form
     ========================== -->

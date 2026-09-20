@@ -502,7 +502,6 @@ def operations_map(request):
     cache.set(cache_key, context, timeout=20)
     
     return render(request, 'Operation/operations_map.html', context)
-
 import os
 from io import BytesIO
 
@@ -870,6 +869,10 @@ from .services import notify_governorate_directors
 
 logger = logging.getLogger(__name__)
 
+
+from .services import notify_governorate_directors, notify_attendance_approval
+
+
 @login_required
 def add_attendance(request, operation_id):
 
@@ -968,7 +971,7 @@ def add_attendance(request, operation_id):
     )
 
     # =========================================================
-    # 7. هل المستخدم مدير محافظة؟
+    # 7. هل المستخدم مدير محافظة أو مدير مركز؟
     # =========================================================
 
     is_manager = bool(
@@ -977,10 +980,9 @@ def add_attendance(request, operation_id):
             assignment
             and assignment.role
             and assignment.role.name
-            == "مدير المحافظة"
+            in ["مدير المحافظة", "مدير المركز"]
         )
     )
-
     # =========================================================
     # 8. هل المستخدم ضابط مناوب؟
     # =========================================================
@@ -1097,6 +1099,42 @@ def add_attendance(request, operation_id):
                     "تم تسجيل اعتماد إدارة المديرية بنجاح."
                 )
 
+                # =============================================
+                # إرسال إشعار الاعتماد
+                #
+                # مهم:
+                # فشل الإشعار لن يفشل عملية الاعتماد
+                # =============================================
+
+                try:
+
+                    logger.info(
+                        "Starting approval notification. "
+                        "Operation=%s ApprovedBy=%s",
+                        operation.id,
+                        request.user.username
+                    )
+
+                    notify_attendance_approval(
+                        operation=operation,
+                        approved_by=request.user
+                    )
+
+                    logger.info(
+                        "Approval notification completed. "
+                        "Operation=%s",
+                        operation.id
+                    )
+
+                except Exception as notify_err:
+
+                    logger.exception(
+                        "Approval Notification Error. "
+                        "Operation=%s Error=%s",
+                        operation.id,
+                        notify_err
+                    )
+
             except Exception as e:
 
                 logger.exception(
@@ -1158,10 +1196,6 @@ def add_attendance(request, operation_id):
                     status = request.POST.get(
                         f"status_{emp.id}"
                     )
-
-                    # -----------------------------------------
-                    # إذا لم تصل الحالة
-                    # -----------------------------------------
 
                     if not status:
 
@@ -1487,9 +1521,6 @@ def add_attendance(request, operation_id):
         "Employees/add_attendance.html",
         context
     )
-
-
-
 def mark_notification_as_read(request, noti_id):
     try:
         # التأكد أن الإشعار يخص المستخدم الحاليخ
@@ -1500,6 +1531,246 @@ def mark_notification_as_read(request, noti_id):
         return JsonResponse({'status': 'success'})
     except Exception as e:
         return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
+
+@login_required
+def attendance_approvals_overview(request):
+
+    # =========================================================
+    # 1. تحديد التعيين الوظيفي النشط للمستخدم
+    # =========================================================
+
+    assignment = (
+        UserAssignment.objects
+        .select_related(
+            "unit",
+            "unit__linked_governorate",
+            "unit__linked_center",
+            "role",
+        )
+        .filter(
+            user=request.user,
+            is_active=True
+        )
+        .first()
+    )
+
+    role_name = (
+        assignment.role.name
+        if assignment and assignment.role
+        else None
+    )
+
+    APP_NAME = "map"
+
+    # =========================================================
+    # 2. تحديد نوع المستخدم:
+    #    مدير محافظة / مدير مركز / ضابط مناوب
+    # =========================================================
+
+    is_governorate_manager = bool(
+        assignment
+        and role_name == "مدير المحافظة"
+        and request.user.has_perm(
+            f"{APP_NAME}.can_approve_directorate_attendance"
+        )
+    )
+
+    is_center_manager = bool(
+        assignment
+        and role_name == "مدير المركز"
+        and request.user.has_perm(
+            f"{APP_NAME}.can_approve_directorate_attendance"
+        )
+    )
+
+    # الضابط المناوب: عنده صلاحية تعديل دوام المركز
+    # بس مش مدير محافظة ولا مدير مركز
+    is_duty_officer_view = bool(
+        assignment
+        and assignment.unit
+        and assignment.unit.linked_center
+        and request.user.has_perm(
+            f"{APP_NAME}.can_manage_center_attendance"
+        )
+        and not is_governorate_manager
+        and not is_center_manager
+    )
+
+    # =========================================================
+    # 3. التحقق من صلاحية الوصول العامة للصفحة
+    # =========================================================
+
+    if (
+        not request.user.is_superuser
+        and not is_governorate_manager
+        and not is_center_manager
+        and not is_duty_officer_view
+    ):
+
+        return HttpResponseForbidden(
+            "ليس لديك صلاحية عرض هذه الصفحة."
+        )
+
+    # =========================================================
+    # 4. تحديد نطاق العرض حسب نوع المستخدم
+    #
+    # - Superuser        : يشوف كل شي (بدون فلترة)
+    # - مدير محافظة      : يشوف كل مراكز محافظته
+    # - مدير مركز / مناوب: يشوف مركزه فقط
+    # =========================================================
+
+    governorate = None
+    center = None
+
+    if request.user.is_superuser:
+
+        pass
+
+    elif is_governorate_manager:
+
+        governorate = (
+            assignment.unit.linked_governorate
+            if assignment and assignment.unit
+            else None
+        )
+
+        if governorate is None:
+
+            return HttpResponseForbidden(
+                "لا يوجد لديك محافظة مرتبطة بتعيينك الوظيفي."
+            )
+
+    elif is_center_manager or is_duty_officer_view:
+
+        center = (
+            assignment.unit.linked_center
+            if assignment and assignment.unit
+            else None
+        )
+
+        if center is None:
+
+            return HttpResponseForbidden(
+                "لا يوجد لديك مركز مرتبط بتعيينك الوظيفي."
+            )
+
+    # =========================================================
+    # 5. فلترة تاريخ اختيارية
+    #
+    # مهم: إذا المستخدم ما اختار تاريخ، منعرض كل السجلات
+    # (كل الأيام) وليس يوم واحد بس
+    # =========================================================
+
+    selected_date_str = request.GET.get("date", "")
+
+    selected_date = None
+
+    if selected_date_str:
+
+        try:
+
+            selected_date = timezone.datetime.strptime(
+                selected_date_str, "%Y-%m-%d"
+            ).date()
+
+        except ValueError:
+
+            selected_date = None
+            selected_date_str = ""
+
+    # =========================================================
+    # 6. جلب العمليات (المراكز) ضمن النطاق المسموح
+    # =========================================================
+
+    operations_qs = (
+        Operation.objects
+        .select_related(
+            "center",
+            "center__governorate"
+        )
+    )
+
+    if governorate is not None:
+
+        operations_qs = operations_qs.filter(
+            center__governorate=governorate
+        )
+
+    elif center is not None:
+
+        operations_qs = operations_qs.filter(
+            center=center
+        )
+
+    # =========================================================
+    # 7. جلب كل سجلات الاعتماد (نشطة + ملغاة)
+    #
+    # بدون قيد على اليوم، إلا إذا المستخدم فلتر بتاريخ محدد
+    # =========================================================
+
+    approvals_qs = (
+        AttendanceApproval.objects
+        .filter(
+            operation__in=operations_qs,
+            approval_type="directorate",
+        )
+        .select_related(
+            "approved_by",
+            "operation",
+            "operation__center",
+            "operation__center__governorate",
+        )
+        .order_by(
+            "-date",
+            "-approved_at"
+        )
+    )
+
+    if selected_date is not None:
+
+        approvals_qs = approvals_qs.filter(
+            date=selected_date
+        )
+
+    # =========================================================
+    # 8. إحصائيات سريعة
+    # =========================================================
+
+    total_approvals = approvals_qs.count()
+
+    active_count = approvals_qs.filter(
+        is_active=True
+    ).count()
+
+    revoked_count = total_approvals - active_count
+
+    # =========================================================
+    # 9. Context
+    # =========================================================
+
+    context = {
+
+        "approvals": approvals_qs,
+
+        "selected_date_str": selected_date_str,
+
+        "governorate": governorate,
+        "center": center,
+
+        "total_approvals": total_approvals,
+        "active_count": active_count,
+        "revoked_count": revoked_count,
+
+        "is_superuser_view": request.user.is_superuser,
+        "is_center_manager_view": is_center_manager,
+        "is_duty_officer_view": is_duty_officer_view,
+    }
+
+    return render(
+        request,
+        "Employees/attendance_approvals_overview.html",
+        context
+    )
 
 from django.views.decorators.http import require_POST
 from django.http import JsonResponse
@@ -1875,35 +2146,70 @@ def employee_detail(request, pk):
 
 from .models import Operation, Employee, WorkSchedule
 
-
 def employees_by_operation(request):
+
     op_id = request.GET.get("operation")
     operation = get_object_or_404(Operation, pk=op_id)
     today = timezone.now().date()
     weekday = timezone.now().strftime("%a").lower()
 
-    employees = operation.employees.prefetch_related('schedules').all()
+    # =========================================================
+    # ترتيب الرتب من الأعلى للأقل
+    # =========================================================
+
+    RANK_ORDER = [
+        "ملازم اول شرف",
+        "ملازم شرف",
+        "مساعد",
+        "رقيب اول",
+        "رقيب",
+        "عريف",
+        "جندي",
+    ]
+
+    def rank_priority(rank_name):
+        try:
+            return RANK_ORDER.index(rank_name)
+        except ValueError:
+            # أي رتبة غير موجودة بالقائمة تنزل لآخر الترتيب
+            return len(RANK_ORDER)
+
+    employees = list(
+        operation.employees.prefetch_related('schedules').all()
+    )
+
     working_today_count = 0  # عدد المداومين اليوم
 
     for emp in employees:
+
         schedule_today = emp.schedules.filter(day=weekday).first()
+
         if schedule_today:
+
             if schedule_today.is_off and schedule_today.off_date == today:
                 emp.off_today = True
             else:
                 emp.off_today = False
                 working_today_count += 1
+
         else:
             emp.off_today = False
             working_today_count += 1
+
+    # =========================================================
+    # الترتيب حسب الرتبة (من الأعلى للأقل)
+    # =========================================================
+
+    employees.sort(
+        key=lambda emp: rank_priority(emp.rank)
+    )
 
     return render(request, "Employees/employees_by_operation.html", {
         "operation": operation,
         "employees": employees,
         "working_today_count": working_today_count,
-        "total_employees": employees.count()
+        "total_employees": len(employees)
     })
-    
 from django.contrib.auth.decorators import login_required
 from .models import Operation, Employee 
 

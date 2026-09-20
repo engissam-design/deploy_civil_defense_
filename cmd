@@ -25,18 +25,28 @@ path:
 PS D:\civilDefense_website-main\civilDefense_website-main\civilDefense_website-main>
 
 cd civilDefense_website-main
- .\venv\Scripts\activate
->> 
+
+http://172.16.16.200:8002/
+
+ daphne -b 0.0.0.0 -p 8002 mapproject.asgi:application
+
+  .\venv\Scripts\activate
 
 
 
 
-
-
-(venv) PS C:\DgangoPortal> ^C
-(venv) PS C:\DgangoPortal> daphne -b 0.0.0.0 -p 8002 mapproject.asgi:application
-
-
-
-
+web config
+<?xml version="1.0" encoding="utf-8"?>
+<configuration>
+    <system.webServer>
+        <rewrite>
+            <rules>
+                <rule name="DaphneProxy" stopProcessing="true">
+                    <match url="(.*)" />
+                    <action type="Rewrite" url="http://127.0.0.1:8000/{R:1}" />
+                </rule>
+            </rules>
+        </rewrite>
+    </system.webServer>
+</configuration>
 

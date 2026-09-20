@@ -144,15 +144,18 @@
       <table>
     <thead>
         <tr>
-            <th>#</th> <th>الاسم</th>
+        
+            <th>الرتبة</th>
+            <th>الاسم</th>
             <th>رقم الجوال</th>
-            <th>تفاصيل</th> 
+            <th>تفاصيل</th>
         </tr>
     </thead>
     <tbody>
         {% for emp in employees %}
         <tr class="{% if emp.off_today %}off-today{% endif %}">
-            <td>{{ forloop.counter }}</td> <td>{{ emp.name }}</td>
+            <td>{{ emp.rank }}</td>
+            <td>{{ emp.name }}</td>
             <td>{{ emp.mobile }}</td>
             <td>
                 <a class="btn-detail" href="{% url 'Employees/employee_detail' emp.pk %}">عرض التفاصيل</a>
@@ -160,7 +163,7 @@
         </tr>
         {% empty %}
         <tr>
-            <td colspan="4">لا يوجد موظفين في هذا المركز</td>
+            <td colspan="5">لا يوجد موظفين في هذا المركز</td>
         </tr>
         {% endfor %}
     </tbody>

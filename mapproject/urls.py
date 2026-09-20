@@ -86,7 +86,11 @@ urlpatterns = [
     path('add-operation/', map_views.add_operation, name='Operation/add_operation'),
     path('operation/<int:pk>/', map_views.operation_detail, name='Operation/operation_detail'),
     path('operation/<int:pk>/edit/', map_views.update_operation, name='Operation/edit_operation'),
-
+path(
+    "attendance/approvals/",
+    map_views.attendance_approvals_overview,
+    name="attendance_approvals_overview"
+),
     path('add-attendance/<int:operation_id>/', map_views.add_attendance, name='add_attendance'),
     path('attendance/print/<int:operation_id>/', map_views.print_attendance_pdf, name='print_attendance_pdf'),
     path('operation/<int:operation_id>/working-today/', map_views.working_today_employees, name='Employees/working_today_employees'),

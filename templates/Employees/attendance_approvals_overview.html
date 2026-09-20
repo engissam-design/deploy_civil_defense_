@@ -1,0 +1,477 @@
+{% load dict_filters %}
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>اعتمادات الدوام لكل المراكز</title>
+
+    <link rel="stylesheet"
+          href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700&display=swap">
+
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        :root {
+            --primary-color: #2563eb;
+            --primary-hover: #1d4ed8;
+            --primary-light: #eff6ff;
+
+            --success-color: #10b981;
+            --success-bg: #f0fdf4;
+            --success-border: #bbf7d0;
+
+            --warning-color: #f59e0b;
+            --warning-bg: #fffbeb;
+            --warning-border: #fef08a;
+
+            --danger-color: #ef4444;
+            --danger-bg: #fef2f2;
+            --danger-border: #fecaca;
+
+            --info-color: #0ea5e9;
+            --info-bg: #f0f9ff;
+            --info-border: #bae6fd;
+
+            --bg-body: #f8fafc;
+            --card-bg: #ffffff;
+            --border-color: #e2e8f0;
+
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+
+            --radius-lg: 12px;
+            --radius-md: 8px;
+
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+        }
+
+        * {
+            box-sizing: border-box;
+            font-family: 'Cairo', Tahoma, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            margin: 0;
+            padding: 24px;
+            direction: rtl;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .page-header {
+            background: var(--card-bg);
+            padding: 20px 24px;
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-sm);
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+            border-right: 5px solid var(--primary-color);
+            border-top: 1px solid var(--border-color);
+            border-left: 1px solid var(--border-color);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .page-title {
+            margin: 0;
+            font-size: 1.35rem;
+            font-weight: 700;
+        }
+
+        .badge-today {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: var(--info-bg);
+            color: #0369a1;
+            border: 1px solid var(--info-border);
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 700;
+        }
+
+        /* =========================
+           Stats
+        ========================= */
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: var(--card-bg);
+            border-radius: var(--radius-lg);
+            padding: 18px 20px;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border-color);
+            text-align: center;
+        }
+
+        .stat-card .stat-value {
+            font-size: 1.8rem;
+            font-weight: 700;
+        }
+
+        .stat-card .stat-label {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        .stat-card.total .stat-value { color: var(--primary-color); }
+        .stat-card.approved .stat-value { color: var(--success-color); }
+        .stat-card.pending .stat-value { color: var(--danger-color); }
+
+        @media (max-width: 700px) {
+            .stats-grid { grid-template-columns: 1fr; }
+        }
+
+        /* =========================
+           Filter
+        ========================= */
+
+        .filter-card {
+            background: var(--card-bg);
+            padding: 16px 20px;
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border-color);
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            flex-wrap: wrap;
+        }
+
+        .filter-card label {
+            font-weight: 700;
+            font-size: 0.9rem;
+            white-space: nowrap;
+        }
+
+        .filter-card input[type="date"] {
+            padding: 8px 12px;
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border-color);
+            font-size: 0.9rem;
+            font-family: 'Cairo', Tahoma, sans-serif;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 9px 18px;
+            border-radius: var(--radius-md);
+            font-size: 0.875rem;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-decoration: none;
+        }
+
+        .btn-primary {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .btn-primary:hover { background: var(--primary-hover); }
+
+        .btn-outline {
+            background: white;
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+        }
+
+        .btn-outline:hover {
+            background: #f8fafc;
+            border-color: #cbd5e1;
+        }
+
+        /* =========================
+           Table
+        ========================= */
+
+        .table-container {
+            background: var(--card-bg);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-sm);
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+            margin-bottom: 24px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            background: #f8fafc;
+            color: var(--text-muted);
+            padding: 12px 16px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            border-bottom: 1px solid var(--border-color);
+            text-align: center;
+        }
+
+        td {
+            padding: 10px 16px;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 0.875rem;
+            text-align: center;
+            vertical-align: middle;
+        }
+
+        tr:hover { background-color: #f8fafc; }
+
+        .status-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 700;
+        }
+
+        .status-approved {
+            background: var(--success-bg);
+            color: #15803d;
+            border: 1px solid var(--success-border);
+        }
+
+        .status-pending {
+            background: var(--danger-bg);
+            color: #b91c1c;
+            border: 1px solid var(--danger-border);
+        }
+
+        .center-name {
+            font-weight: 700;
+            color: var(--text-main);
+        }
+
+        .gov-name {
+            font-size: 0.78rem;
+            color: var(--text-muted);
+        }
+
+        .date-cell {
+            font-weight: 700;
+            color: var(--text-main);
+        }
+
+        .empty-state {
+            padding: 40px 20px;
+            text-align: center;
+            color: var(--text-muted);
+        }
+
+        a.view-link {
+            color: var(--primary-color);
+            font-weight: 600;
+            text-decoration: none;
+            font-size: 0.82rem;
+        }
+
+        a.view-link:hover { text-decoration: underline; }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <!-- =========================
+         Page Header
+    ========================== -->
+
+    <header class="page-header">
+
+        <div>
+            <h1 class="page-title">
+                <i class="fa-solid fa-file-circle-check"
+                   style="color: var(--primary-color);"></i>
+                اعتمادات الدوام  
+            </h1>
+
+            {% if not is_superuser_view and governorate %}
+                <div style="font-size: 0.85rem; color: var(--text-muted); margin-top: 6px;">
+                    محافظة: {{ governorate }}
+                </div>
+            {% elif not is_superuser_view and center %}
+                <div style="font-size: 0.85rem; color: var(--text-muted); margin-top: 6px;">
+                    المركز: {{ center }}
+                </div>
+            {% endif %}
+        </div>
+
+        <div>
+            {% if selected_date_str %}
+                <span class="badge-today"
+                      style="background: var(--warning-bg); color: #b45309; border-color: var(--warning-border);">
+                    <i class="fa-regular fa-calendar"></i>
+                    عرض تاريخ محدد: {{ selected_date_str }}
+                </span>
+            {% else %}
+                <span class="badge-today">
+                    <i class="fa-regular fa-calendar-days"></i>
+                    عرض كل السجل (جميع الأيام)
+                </span>
+            {% endif %}
+        </div>
+
+    </header>
+
+
+
+
+
+    <!-- =========================
+         Date Filter (اختياري)
+    ========================== -->
+
+    <form method="get" class="filter-card">
+
+        <label for="date">
+            <i class="fa-regular fa-calendar" style="color: var(--primary-color);"></i>
+            فلترة بتاريخ محدد (اختياري):
+        </label>
+
+        <input
+            type="date"
+            id="date"
+            name="date"
+            value="{{ selected_date_str }}">
+
+        <button type="submit" class="btn btn-primary">
+            <i class="fa-solid fa-filter"></i>
+            تطبيق
+        </button>
+
+        {% if selected_date_str %}
+            <a href="{% url 'attendance_approvals_overview' %}" class="btn btn-outline">
+                <i class="fa-solid fa-rotate-left"></i>
+                عرض الكل (بدون فلترة)
+            </a>
+        {% endif %}
+
+    </form>
+
+    <!-- =========================
+         Table
+    ========================== -->
+
+    <div class="table-container">
+
+        <table>
+
+            <thead>
+                <tr>
+                    {% if is_superuser_view %}
+                        <th style="width: 13%;">المحافظة</th>
+                    {% endif %}
+                    <th>المركز</th>
+                    <th style="width: 12%;">التاريخ</th>
+                    <th style="width: 12%;">الحالة</th>
+                    <th style="width: 18%;">المعتمِد</th>
+                    <th style="width: 15%;">وقت الاعتماد</th>
+                    <th style="width: 15%;">وقت الإلغاء</th>
+                    <th style="width: 10%;"></th>
+                </tr>
+            </thead>
+
+            <tbody>
+
+                {% for approval in approvals %}
+
+                <tr>
+
+                    {% if is_superuser_view %}
+                        <td class="gov-name">
+                            {{ approval.operation.center.governorate }}
+                        </td>
+                    {% endif %}
+
+                    <td class="center-name">
+                        {{ approval.operation.center }}
+                    </td>
+
+                    <td class="date-cell">
+                        {{ approval.date|date:"Y-m-d" }}
+                    </td>
+
+                    <td>
+                        {% if approval.is_active %}
+                            <span class="status-pill status-approved">
+                                <i class="fa-solid fa-circle-check"></i>
+                                نشط
+                            </span>
+                        {% else %}
+                            <span class="status-pill status-pending">
+                                <i class="fa-solid fa-ban"></i>
+                                ملغى
+                            </span>
+                        {% endif %}
+                    </td>
+
+                    <td>
+                        {{ approval.approved_by.get_full_name|default:approval.approved_by.username }}
+                    </td>
+
+                    <td>
+                        {{ approval.approved_at|date:"Y-m-d H:i" }}
+                    </td>
+
+                    <td>
+                        {% if approval.revoked_at %}
+                            {{ approval.revoked_at|date:"Y-m-d H:i" }}
+                        {% else %}
+                            <span style="color: var(--text-muted);">—</span>
+                        {% endif %}
+                    </td>
+
+
+                </tr>
+
+                {% empty %}
+
+                <tr>
+                    <td colspan="8">
+                        <div class="empty-state">
+                            <i class="fa-regular fa-folder-open" style="font-size: 2rem;"></i>
+                            <p>لا يوجد أي سجلات اعتماد ضمن نطاقك.</p>
+                        </div>
+                    </td>
+                </tr>
+
+                {% endfor %}
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+</div>
+
+</body>
+</html>
