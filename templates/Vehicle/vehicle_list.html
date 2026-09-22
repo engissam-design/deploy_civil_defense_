@@ -62,18 +62,24 @@
 </head>
 <body>
 
-<div style="display:flex; justify-content:space-between; align-items:center; background:#f8f9fa; padding:10px 20px; border-radius:10px; box-shadow:0 2px 8px #ddd; direction:rtl;">
-     <h6 style="margin:0; color:#333; font-weight:bold;">
-    👤  {% if request.user.rank %}{{ request.user.get_rank_display }} {% endif %}{{ request.user.username }}
-</h6>
-    <form method="post" action="{% url 'logout' %}">
-        {% csrf_token %}
-        <button type="submit" style="background:#dc3545; color:white; border:none; padding:7px 15px; border-radius:6px; cursor:pointer;">
-            🚪 تسجيل الخروج
-        </button>
-    </form>
-</div>
 
+    <!-- Navbar -->
+    <div class="top-navbar">
+<h6 style="margin:0; color:#333; font-weight:bold;">
+    👤 
+    {% if request.user.rank %}{{ request.user.get_rank_display }} {% endif %}
+    {% if request.user.first_name %}{{ request.user.first_name }} {% endif %}
+    {% if request.user.last_name %}{{ request.user.last_name }} {% endif %}
+    {% if request.user.username %}({{ request.user.username }}){% endif %}
+</h6>
+
+        <form method="post" action="{% url 'logout' %}">
+            {% csrf_token %}
+            <button type="submit" class="btn-logout">
+                تسجيل الخروج
+            </button>
+        </form>
+    </div>
 
 {% with source=request.GET.source %}
 
