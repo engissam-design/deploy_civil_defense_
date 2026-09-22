@@ -75,6 +75,8 @@ AUTHENTICATION_BACKENDS = [
     
     # 2. الباكيند الافتراضي لدجانغو (مهم جداً لكي يظل الـ Superuser والـ Admin يعملان بشكل طبيعي)
     'django.contrib.auth.backends.ModelBackend',
+    'map.backends.UniqueNumberBackend',
+    'django.contrib.auth.backends.ModelBackend',
 ]
 
 

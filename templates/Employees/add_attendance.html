@@ -874,20 +874,13 @@
 
     <div class="top-navbar">
 
-        <h6 class="user-badge">
-
-            <i class="fa-solid fa-circle-user"
-               style="
-               color: var(--primary-color);
-               font-size: 1.2rem;
-               ">
-            </i>
-
-            مرحباً،
-            {{ request.user.get_full_name|default:request.user.username }}
-
-        </h6>
-
+<h6 style="margin:0; color:#333; font-weight:bold;">
+    👤 
+    {% if request.user.rank %}{{ request.user.get_rank_display }} {% endif %}
+    {% if request.user.first_name %}{{ request.user.first_name }} {% endif %}
+    {% if request.user.last_name %}{{ request.user.last_name }} {% endif %}
+    {% if request.user.username %}({{ request.user.username }}){% endif %}
+</h6>
 
         <div class="nav-actions">
 

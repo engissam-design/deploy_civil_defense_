@@ -4,6 +4,7 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>تسجيل الدخول</title>
 
     <link rel="stylesheet" href="{% static 'css/login.css' %}">
@@ -29,6 +30,14 @@
                     <form method="post" class="login-form">
                         {% csrf_token %}
 
+                        {% if form.non_field_errors %}
+                            <div class="form-error">
+                                {% for error in form.non_field_errors %}
+                                    <p>{{ error }}</p>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+
                         <div class="input-group">
                             <div class="input-wrapper">
                                 {{ form.username|as_crispy_field }}
@@ -38,11 +47,19 @@
                         <div class="input-group password-group">
                             <div class="input-wrapper">
                                 {{ form.password|as_crispy_field }}
-                                <img src="{% static 'img/bold.png' %}" class="password-icon" alt="Toggle">
+                                <img src="{% static 'img/bold.png' %}"
+                                     data-hidden-src="{% static 'img/bold.png' %}"
+                                     data-visible-src="{% static 'img/eye_open.svg' %}"
+                                     class="password-icon"
+                                     id="togglePassword"
+                                     alt="إظهار/إخفاء كلمة المرور"
+                                     role="button"
+                                     tabindex="0">
                             </div>
 
                             <div>
-                                <input type="checkbox" id="remember_me" name="remember_me">
+                                <input type="checkbox" id="remember_me" name="remember_me"
+                                       {% if request.POST.remember_me %}checked{% endif %}>
                                 <label for="remember_me">تذكرني</label>
                             </div>
 
@@ -62,5 +79,36 @@
             </div>
         </main>
     </section>
+
+    <script>
+        (function () {
+            var passwordInput = document.getElementById('id_password');
+            var toggleIcon = document.getElementById('togglePassword');
+
+            if (!passwordInput || !toggleIcon) return;
+
+            function togglePassword() {
+                var isHidden = passwordInput.type === 'password';
+
+                if (isHidden) {
+                    // إظهار كلمة المرور -> عين بدون خط
+                    passwordInput.type = 'text';
+                    toggleIcon.src = toggleIcon.dataset.visibleSrc;
+                } else {
+                    // إخفاء كلمة المرور -> عين مع خط
+                    passwordInput.type = 'password';
+                    toggleIcon.src = toggleIcon.dataset.hiddenSrc;
+                }
+            }
+
+            toggleIcon.addEventListener('click', togglePassword);
+            toggleIcon.addEventListener('keydown', function (e) {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    togglePassword();
+                }
+            });
+        })();
+    </script>
 </body>
 </html>

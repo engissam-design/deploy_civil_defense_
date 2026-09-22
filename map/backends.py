@@ -54,3 +54,23 @@ class RoleBasedPermissionBackend(BaseBackend):
             return set()
             
         return self.get_user_permissions(user_obj, obj)
+
+
+
+
+
+
+from django.contrib.auth import get_user_model
+from django.contrib.auth.backends import ModelBackend
+
+class UniqueNumberBackend(ModelBackend):
+    def authenticate(self, request, username=None, password=None, **kwargs):
+        User = get_user_model()
+        try:
+            user = User.objects.get(unique_number=username)
+        except User.DoesNotExist:
+            User().set_password(password)  # عشان ما يتعرف إذا الرقم موجود من سرعة الرد
+            return None
+        if user.check_password(password) and self.user_can_authenticate(user):
+            return user
+        return None    

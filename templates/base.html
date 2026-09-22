@@ -140,7 +140,7 @@
     <!-- قسم المستخدم -->
     {% if user.is_authenticated %}
     <div class="user-section">
-      <span class="user-greeting">مرحباً، <span class="user-name">{{ user.username }}</span></span>
+      <span class="user-greeting"> <span class="user-name">{{ user.username }}</span></span>
       <form action="{% url 'logout' %}" method="post" style="margin: 0;">
         {% csrf_token %}
         <button type="submit" class="logout-btn">تسجيل الخروج</button>

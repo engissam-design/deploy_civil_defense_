@@ -46,10 +46,10 @@
   margin: 0 auto;
   padding: 0 24px;
 }
-/* =========================================
-   شريط التنبيهات العاجلة
-========================================= */
 
+/* =========================================
+   2. شريط التنبيهات العاجلة
+========================================= */
 .ticker-wrap {
     background: var(--secondary);
     border: 1px solid rgba(255, 255, 255, 0.1);
@@ -90,19 +90,16 @@
         transform: scale(0.95);
         opacity: 0.8;
     }
-
     50% {
         transform: scale(1.15);
         opacity: 1;
     }
-
     100% {
         transform: scale(0.95);
         opacity: 0.8;
     }
 }
 
-/* منطقة عرض الشريط */
 .ticker-content {
     flex: 1;
     min-width: 0;
@@ -112,37 +109,29 @@
     direction: rtl;
 }
 
-/* النص المتحرك */
 .ticker-text {
     display: inline-flex;
     align-items: center;
     white-space: nowrap;
     width: max-content;
-
-    /* يبدأ من خارج الجهة اليمنى */
     animation: ticker-marquee 30s linear infinite;
 }
 
-/* كل تنبيه */
 .ticker-item {
     display: inline-flex;
     align-items: center;
     gap: 8px;
-
     color: #f1f5f9;
     font-size: 0.95rem;
     font-weight: 500;
-
     white-space: nowrap;
 }
 
-/* عنوان التنبيه */
 .ticker-item .ticker-heading {
     color: var(--accent);
     font-weight: 800;
 }
 
-/* الفاصل بين التنبيهات */
 .ticker-separator {
     margin: 0 25px;
     color: var(--primary);
@@ -151,23 +140,19 @@
     align-items: center;
 }
 
-/* حركة الشريط من اليمين إلى اليسار */
 @keyframes ticker-marquee {
-
     0% {
         transform: translateX(-100%);
     }
-
     100% {
         transform: translateX(100%);
     }
-
 }
 
-/* إيقاف الحركة عند وضع الماوس */
 .ticker-wrap:hover .ticker-text {
     animation-play-state: paused;
 }
+
 /* --------------------------------------------------
    3. العناوين الرئيسية للأقسام
 -------------------------------------------------- */
@@ -200,7 +185,176 @@
 }
 
 /* --------------------------------------------------
-   4. قسم الإعلانات والإنذارات (Announcements)
+   4. بطاقة التعريف والجودة (About Hero Card)
+-------------------------------------------------- */
+.about-card {
+  background: var(--surface);
+  border-radius: var(--radius-lg);
+  padding: 40px;
+  margin-bottom: 40px;
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border-color);
+  position: relative;
+  overflow: hidden;
+}
+
+.about-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 6px;
+  height: 100%;
+  background: var(--primary);
+}
+
+.about-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 20px;
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 24px;
+  margin-bottom: 24px;
+}
+
+.about-title-group {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.about-title-group .icon-box {
+  width: 52px;
+  height: 52px;
+  background: var(--primary-subtle);
+  color: var(--primary);
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+}
+
+.about-title {
+  margin: 0;
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: var(--text-main);
+}
+
+.official-badges {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.badge-item {
+  background: var(--bg-main);
+  color: var(--text-muted);
+  padding: 6px 16px;
+  border-radius: 30px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  border: 1px solid var(--border-color);
+}
+
+.about-desc {
+  font-size: 1.05rem;
+  line-height: 1.8;
+  color: #475569;
+  margin: 0;
+}
+
+/* --------------------------------------------------
+   5. قسم كلمة المدير العام (Director Card)
+-------------------------------------------------- */
+.director-card {
+  background: var(--surface);
+  border-radius: var(--radius-lg);
+  padding: 36px;
+  margin-bottom: 60px;
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border-color);
+  position: relative;
+  overflow: hidden;
+}
+
+.director-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 6px;
+  height: 100%;
+  background: var(--primary);
+}
+
+.director-content-wrapper {
+  display: flex;
+  align-items: flex-start;
+  gap: 32px;
+}
+
+.director-image-box {
+  flex-shrink: 0;
+  width: 220px;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  box-shadow: var(--shadow-md);
+  border: 3px solid #fff;
+  outline: 1px solid var(--border-color);
+}
+
+.director-image-box img {
+  width: 100%;
+  height: auto;
+  display: block;
+  object-fit: cover;
+}
+
+.director-info {
+  flex: 1;
+}
+
+.director-header-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--primary-subtle);
+  color: var(--primary);
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  margin-bottom: 12px;
+}
+
+.director-title {
+  margin: 0 0 16px;
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--text-main);
+}
+
+.director-quote {
+  font-size: 1rem;
+  line-height: 1.8;
+  color: #475569;
+  margin: 0;
+}
+
+.director-quote p {
+  margin-bottom: 12px;
+}
+
+.director-quote p:last-child {
+  margin-bottom: 0;
+}
+
+/* --------------------------------------------------
+   6. قسم الإعلانات والإنذارات (Announcements)
 -------------------------------------------------- */
 .announcements-container {
   margin-bottom: 60px;
@@ -278,90 +432,7 @@
 }
 
 /* --------------------------------------------------
-   5. بطاقة التعريف والجودة (About Hero Card)
--------------------------------------------------- */
-.about-card {
-  background: var(--surface);
-  border-radius: var(--radius-lg);
-  padding: 40px;
-  margin-bottom: 60px;
-  box-shadow: var(--shadow-sm);
-  border: 1px solid var(--border-color);
-  position: relative;
-  overflow: hidden;
-}
-
-.about-card::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  right: 0;
-  width: 6px;
-  height: 100%;
-  background: var(--primary);
-}
-
-.about-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 20px;
-  border-bottom: 1px solid var(--border-color);
-  padding-bottom: 24px;
-  margin-bottom: 24px;
-}
-
-.about-title-group {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-}
-
-.about-title-group .icon-box {
-  width: 52px;
-  height: 52px;
-  background: var(--primary-subtle);
-  color: var(--primary);
-  border-radius: var(--radius-md);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.5rem;
-}
-
-.about-title {
-  margin: 0;
-  font-size: 1.6rem;
-  font-weight: 800;
-  color: var(--text-main);
-}
-
-.official-badges {
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
-}
-
-.badge-item {
-  background: var(--bg-main);
-  color: var(--text-muted);
-  padding: 6px 16px;
-  border-radius: 30px;
-  font-size: 0.85rem;
-  font-weight: 600;
-  border: 1px solid var(--border-color);
-}
-
-.about-desc {
-  font-size: 1.05rem;
-  line-height: 1.8;
-  color: #475569;
-  margin: 0;
-}
-
-/* --------------------------------------------------
-   6. شبكة الخدمات الحديثة (Service Grid)
+   7. شبكة الخدمات الحديثة (Service Grid)
 -------------------------------------------------- */
 .services-grid {
   display: grid;
@@ -463,6 +534,19 @@
   border-radius: 20px;
 }
 
+/* تجاوب التصميم مع الشاشات الصغيرة */
+@media (max-width: 768px) {
+  .director-content-wrapper {
+    flex-direction: column;
+    text-align: center;
+    align-items: center;
+  }
+  
+  .director-image-box {
+    width: 180px;
+    margin: 0 auto;
+  }
+}
 </style>
 {% endblock %}
 
@@ -470,64 +554,69 @@
 <div class="services-page">
   <div class="container">
 
-<!-- 🚨 شريط التنبيهات العاجلة -->
-<div class="ticker-wrap">
-
-    <!-- عنوان الشريط -->
-    <div class="ticker-title">
-        <i class="fa-solid fa-triangle-exclamation"></i>
-        تنبيهات عاجلة
-    </div>
-
-    <!-- محتوى الشريط -->
-    <div class="ticker-content">
-
-        <div class="ticker-text">
-
-            {% for item in tickers %}
-
-                <div class="ticker-item">
-
-                    <strong class="ticker-heading">
-                        {{ item.title }}
-                    </strong>
-
-                    {% if item.content %}
-                        <span>
-                            {{ item.content }}
-                        </span>
-                    {% endif %}
-
-                    {% if item.emergency_number %}
-                        <span>
-                            | رقم الطوارئ: {{ item.emergency_number }}
-                        </span>
-                    {% endif %}
-
-                </div>
-
-                {% if not forloop.last %}
-                    <span class="ticker-separator">
-                        <i class="fa-solid fa-circle"></i>
-                    </span>
-                {% endif %}
-
-            {% empty %}
-
-                <div class="ticker-item">
-                    <span>
-                        لا توجد تنبيهات عاجلة حالياً.
-                    </span>
-                </div>
-
-            {% endfor %}
-
+    <!-- 🚨 شريط التنبيهات العاجلة -->
+    <div class="ticker-wrap">
+        <div class="ticker-title">
+            <i class="fa-solid fa-triangle-exclamation"></i>
+            تنبيهات عاجلة
         </div>
-
+        <div class="ticker-content">
+            <div class="ticker-text">
+                {% for item in tickers %}
+                    <div class="ticker-item">
+                        <strong class="ticker-heading">{{ item.title }}</strong>
+                        {% if item.content %}
+                            <span>{{ item.content }}</span>
+                        {% endif %}
+                        {% if item.emergency_number %}
+                            <span>| رقم الطوارئ: {{ item.emergency_number }}</span>
+                        {% endif %}
+                    </div>
+                    {% if not forloop.last %}
+                        <span class="ticker-separator"><i class="fa-solid fa-circle"></i></span>
+                    {% endif %}
+                {% empty %}
+                    <div class="ticker-item">
+                        <span>لا توجد تنبيهات عاجلة حالياً.</span>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
     </div>
 
-</div>
-    <!-- 🏛️ قسم عن الدفاع المدني -->
+  
+    <!-- 👔 قسم كلمة المدير العام -->
+    <div class="director-card">
+      <div class="director-content-wrapper">
+        <div class="director-image-box">
+          <!-- غير مسار الصورة إلى مسار ملف الصورة الصحيح لديك -->
+          <img src="/static/img/akram.png" alt="السيد اللواء ركن أكرم محمود ثوابتة">
+        </div>
+        <div class="director-info">
+          <div class="director-header-badge">
+            <i class="fa-solid fa-user-shield"></i> كلمة المدير العام
+          </div>
+          <h3 class="director-title">السيد اللواء ركن أكرم محمود ثوابتة</h3>
+          <div class="director-quote">
+            <p>
+              إنه لمن دواعي الفخر والاعتزاز أن أتحدث عن جهاز الدفاع المدني الذي يعمل جاهداً لتقديم الخدمة المثلى للمواطن الفلسطيني سعياً منه لحماية الأرواح والممتلكات الخاصة والعامة، وصون الوطن ومقدراته.
+            </p>
+            <p>
+              واستهل كلمتي بداية بأن أتقدم بأسمى آيات الشكر والعرفان للسيد الرئيس محمود عباس رئيس دولة فلسطين القائد الأعلى لقوات الأمن على الثقة التي منحني إياها بتقديم خدمات الدفاع المدني لأبناء شعبنا على ترابه الغالي.
+            </p>
+            <p>
+              ولضمان تأدية المهام وفقاً للأهداف الواردة بالإستراتيجية المعدة، يعمل الدفاع المدني على مواكبة كل ما هو جديد على الساحة الوطنية وتحديد الأولويات من أجل تطوير منهجية العمل ضمن قواعد الحكم الرشيد.
+            </p>
+            <p>
+              ولذلك ارتأت وزارة الداخلية ضرورة وضع جهاز الدفاع المدني ضمن أولوياتها لتحقيق متطلبات الأمن والسلامة لأبناء الشعب الفلسطيني منطلقةً بذلك من إيمان راسخ يُعد أساساً مهماً لبناء الدولة على أساس ترسيخ قيم ومفاهيم الدفاع المدني في المجتمع الفلسطيني.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+
+      <!-- 🏛️ قسم عن الدفاع المدني -->
     <div class="about-card">
       <div class="about-header">
         <div class="about-title-group">
@@ -572,7 +661,6 @@
       </div>
     </div>
 
-
     <!-- 🚒 قسم الأقسام الرئيسية -->
     <div class="section-title">
       <h2>الأقسام والدوائر الرئيسية</h2>
@@ -599,13 +687,15 @@
         <p>إدارة جميع المراكز ومتابعة سير العمل الميداني على مدار الساعة.</p>
         <a href="http://172.16.16.16/" class="btn-card">عرض المزيد <i class="fa-solid fa-arrow-left"></i></a>
       </div>
-<div class="service-card">
-  <div class="icon-wrapper">
-<img src="https://cdn-icons-png.flaticon.com/512/1570/1570887.png" alt="الإدارة والتنظيم">  </div>
-  <h3>الإدارة والتنظيم</h3>
-  <p>إدارة وتوجيه سير العمل الميداني والإداري بفاعلية.</p>
-  <a href="{% url 'Operation/operations_map' %}" class="btn-card">عرض المزيد <i class="fa-solid fa-arrow-left"></i></a>
-</div>
+
+      <div class="service-card">
+        <div class="icon-wrapper">
+          <img src="https://cdn-icons-png.flaticon.com/512/1570/1570887.png" alt="الإدارة والتنظيم">
+        </div>
+        <h3>الإدارة والتنظيم</h3>
+        <p>إدارة وتوجيه سير العمل الميداني والإداري بفاعلية.</p>
+        <a href="{% url 'Operation/operations_map' %}" class="btn-card">عرض المزيد <i class="fa-solid fa-arrow-left"></i></a>
+      </div>
 
       <div class="service-card">
         <div class="icon-wrapper">
@@ -720,8 +810,6 @@
       </div>
 
     </div>
-
- 
 
   </div>
 </div>

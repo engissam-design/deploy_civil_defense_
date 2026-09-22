@@ -62,14 +62,13 @@
     direction:rtl;
 ">
 
-    <h6 style="
-        margin:0;
-        color:#333;
-        font-weight:bold;
-    ">
-        👤 مرحباً {{ request.user.username }}
-    </h6>
-
+<h6 style="margin:0; color:#333; font-weight:bold;">
+    👤 
+    {% if request.user.rank %}{{ request.user.get_rank_display }} {% endif %}
+    {% if request.user.first_name %}{{ request.user.first_name }} {% endif %}
+    {% if request.user.last_name %}{{ request.user.last_name }} {% endif %}
+    {% if request.user.username %}({{ request.user.username }}){% endif %}
+</h6>
 
     <form method="post" action="{% url 'logout' %}">
         {% csrf_token %}

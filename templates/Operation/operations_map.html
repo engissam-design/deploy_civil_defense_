@@ -250,9 +250,13 @@
 
     <!-- Navbar -->
     <div class="top-navbar">
-        <h6 class="user-greeting">
-            👤 مرحباً {{ request.user.username }}
-        </h6>
+<h6 style="margin:0; color:#333; font-weight:bold;">
+    👤 
+    {% if request.user.rank %}{{ request.user.get_rank_display }} {% endif %}
+    {% if request.user.first_name %}{{ request.user.first_name }} {% endif %}
+    {% if request.user.last_name %}{{ request.user.last_name }} {% endif %}
+    {% if request.user.username %}({{ request.user.username }}){% endif %}
+</h6>
 
         <form method="post" action="{% url 'logout' %}">
             {% csrf_token %}
@@ -347,11 +351,11 @@
 <!-- Leaflet Map Logic & Search Functions -->
 <script>
     var map = L.map('map').setView([31.95, 35.91], 8);
-L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
-    subdomains: 'abcd',
-    maxZoom: 20
-}).addTo(map);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; مساهمة OpenStreetMap'
+    }).addTo(map);
+
     // أيقونة حمراء مخصصة
     var RedIcon = new L.Icon({
         iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',

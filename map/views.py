@@ -19,6 +19,18 @@ def logout_view(request):
 
 from django.contrib.auth import authenticate, login
 from .forms import LoginForm
+from django.contrib.auth import authenticate, login
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import render, redirect
+
+from .forms import LoginForm
+
+from django.contrib.auth import authenticate, login
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import render, redirect
+
+from .forms import LoginForm
+
 
 def login_view(request):
     form = LoginForm()
@@ -28,17 +40,25 @@ def login_view(request):
         if form.is_valid():
             username = form.cleaned_data['username']
             password = form.cleaned_data['password']
+            remember_me = request.POST.get('remember_me')
 
             user = authenticate(request, username=username, password=password)
 
             if user is not None:
-                login(request, user)   # ⭐ هاي أهم سطر
+                login(request, user)
+
+                if remember_me:
+                    request.session.set_expiry(60 * 60 * 24 * 14)
+                else:
+                    request.session.set_expiry(0)
+
                 return redirect('after_login_redirect')
 
             else:
                 form.add_error(None, "البريد الإلكتروني أو كلمة المرور غير صحيحة")
 
     return render(request, 'login.html', {'form': form})
+
 
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect

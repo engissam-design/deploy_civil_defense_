@@ -147,9 +147,17 @@ class EmployeeAttendanceAdmin(admin.ModelAdmin):
 from .models import CustomUser,UserAssignment
 @admin.register(CustomUser)
 class CustomUserAdmin(UserAdmin):
-    list_display = ('username', 'email', 'get_governorate', 'get_center', 'is_staff', 'is_active')
+    list_display = ('username', 'unique_number', 'rank', 'email', 'get_governorate', 'get_center', 'is_staff', 'is_active')
+    list_filter = ('rank', 'is_staff', 'is_active')
+    search_fields = ('username', 'unique_number', 'email')
 
-    # دالة لجلب المحافظة من التعيين الوظيفي
+    fieldsets = UserAdmin.fieldsets + (
+        ("البيانات الوظيفية", {"fields": ("unique_number", "rank")}),
+    )
+    add_fieldsets = UserAdmin.add_fieldsets + (
+        ("البيانات الوظيفية", {"fields": ("unique_number", "rank")}),
+    )
+
     def get_governorate(self, obj):
         assignment = obj.assignments.filter(is_active=True).first()
         if assignment and assignment.unit and assignment.unit.linked_governorate:
@@ -157,17 +165,12 @@ class CustomUserAdmin(UserAdmin):
         return "غير محدد"
     get_governorate.short_description = "المحافظة"
 
-    # دالة لجلب المركز من التعيين الوظيفي
     def get_center(self, obj):
         assignment = obj.assignments.filter(is_active=True).first()
         if assignment and assignment.unit and assignment.unit.linked_center:
             return assignment.unit.linked_center.name
         return "غير محدد"
     get_center.short_description = "المركز/المديرية"
-
-    # ملاحظة: list_filter لا يمكن أن تعمل على "دالة" مباشرة إلا إذا كانت مرتبطة بحقل
-    # لذا سنزيلها من list_filter ونكتفي بعرضها فقط، أو نعتمد على الفلترة من داخل جدول UserAssignment
-    list_filter = ('is_staff', 'is_active')
 from django.contrib import admin
 from .models import Role
 

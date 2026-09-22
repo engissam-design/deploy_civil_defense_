@@ -4,22 +4,44 @@ from .models import Search
 from .models import Investigation, Governorate, Center
 
 from django import forms
+from .models import Search
+from .models import Investigation, Governorate, Center
 
-class LoginForm(forms.Form):
+from django import forms
+
+from django import forms
+from django.contrib.auth.forms import AuthenticationForm
+from django import forms
+from django.contrib.auth.forms import AuthenticationForm
+
+from django import forms
+from django.contrib.auth.forms import AuthenticationForm
+
+from django import forms
+
+class LoginForm(AuthenticationForm):
     username = forms.CharField(
-        label="البريد الإلكتروني",
+        label="الرقم الوظيفي",
         widget=forms.TextInput(attrs={
             "class": "input-field",
-            "placeholder": "البريد الإلكتروني"
+            "placeholder": "الرقم الوظيفي",
+            "autofocus": True,
+            "inputmode": "numeric",
         })
     )
     password = forms.CharField(
         label="كلمة المرور",
+        strip=False,
         widget=forms.PasswordInput(attrs={
             "class": "input-field",
-            "placeholder": "كلمة المرور"
+            "placeholder": "كلمة المرور",
         })
     )
+
+    error_messages = {
+        "invalid_login": "الرقم الوظيفي أو كلمة المرور غير صحيحة",
+        "inactive": "هذا الحساب غير مفعّل",
+    }
 
 class SearchForm(forms.ModelForm):
     address = forms.CharField(label='')

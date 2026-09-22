@@ -161,11 +161,45 @@ class Role(models.Model):
 
 
 class CustomUser(AbstractUser):
+    RANK_CHOICES = [
+        ("soldier", "الجندي"),
+        ("corporal", "العريف"),
+        ("sergeant", "الرقيب"),
+        ("first_sergeant", "الرقيب أول"),
+        ("warrant", "المساعد"),
+        ("first_warrant", "المساعد أول"),
+        ("lieutenant", "الملازم"),
+        ("first_lieutenant", "الملازم أول"),
+        ("captain", "النقيب"),
+        ("major", "الرائد"),
+        ("lt_colonel", "المقدم"),
+        ("colonel", "العقيد"),
+        ("brigadier", "العميد"),
+        ("major_general", "اللواء"),
+    ]
+   
     username = models.CharField(max_length=150, unique=True, verbose_name="اسم المستخدم")
+    unique_number = models.CharField(
+        max_length=20, unique=True, null=True, blank=True,
+        verbose_name="الرقم الوظيفي"
+    )
+    rank = models.CharField(
+        max_length=20, choices=RANK_CHOICES, blank=True, default="",
+        verbose_name="الرتبة"
+    )
+
+    # save() و Meta زي ما هم
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        # إذا ما انحط رقم يدوي، بنولّد واحد تلقائي من الـ id
+        if not self.unique_number:
+            self.unique_number = str(100000 + self.pk)
+            super().save(update_fields=['unique_number'])
 
     class Meta:
         verbose_name = "مستخدم"
         verbose_name_plural = "المستخدمون -4"
+
 
 
 class UserAssignment(models.Model):
