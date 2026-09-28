@@ -29,39 +29,68 @@ from django.contrib.auth import authenticate, login
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect
 
+from django.shortcuts import render, redirect
+from django.contrib.auth import authenticate, login
 from .forms import LoginForm
 
 
+from django.shortcuts import render, redirect
+from django.contrib.auth import authenticate, login
+from .forms import LoginForm
+
+
+from django.contrib.auth import login
+from django.shortcuts import render, redirect
+
+from .forms import LoginForm
+
+from django.contrib.auth import login
+from django.shortcuts import render, redirect
+
+from .forms import LoginForm
+
+
+from django.contrib.auth import login
+from django.shortcuts import redirect, render
+
+from .forms import LoginForm
+
+
+from django.contrib.auth import login
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import redirect, render
+
+from .forms import LoginForm
+
+from django.contrib.auth import login
+from django.shortcuts import redirect, render
+
+from .forms import LoginForm  # عدّل المسار حسب مكان LoginForm عندك
+
+
 def login_view(request):
-    form = LoginForm()
+    # نفس سلوك redirect_authenticated_user=True اللي كان بالرابط القديم
+    if request.user.is_authenticated:
+        return redirect("after_login_redirect")
+
+    form = LoginForm(request, data=request.POST or None)
 
     if request.method == "POST":
-        form = LoginForm(request.POST)
         if form.is_valid():
-            username = form.cleaned_data['username']
-            password = form.cleaned_data['password']
-            remember_me = request.POST.get('remember_me')
+            user = form.get_user()
+            login(request, user)
 
-            user = authenticate(request, username=username, password=password)
-
-            if user is not None:
-                login(request, user)
-
-                if remember_me:
-                    request.session.set_expiry(60 * 60 * 24 * 14)
-                else:
-                    request.session.set_expiry(0)
-
-                return redirect('after_login_redirect')
-
+            # TC-006: Remember Me
+            if request.POST.get("remember_me"):
+                # الجلسة بتضل شغالة 14 يوم حتى لو سكّر المتصفح
+                request.session.set_expiry(1209600)
             else:
-                form.add_error(None, "البريد الإلكتروني أو كلمة المرور غير صحيحة")
+                # الجلسة بتنتهي لما يسكّر المتصفح
+                request.session.set_expiry(0)
 
-    return render(request, 'login.html', {'form': form})
+            return redirect("after_login_redirect")
 
-
-from django.contrib.auth.decorators import login_required
-from django.shortcuts import redirect
+    return render(request, "login.html", {"form": form})
 
 
 # @login_required

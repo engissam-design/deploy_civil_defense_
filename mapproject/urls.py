@@ -11,15 +11,15 @@ from django.urls import path
 # from .map_views import services_page_view
 urlpatterns = [
     path('admin/', admin.site.urls),
-
-    path(
-        '',
-        auth_views.LoginView.as_view(
-            template_name='login.html',
-            redirect_authenticated_user=True
-        ),
-        name='login'
-    ),
+path('', map_views.login_view, name='login'),
+    # path(
+    #     '',
+    #     auth_views.LoginView.as_view(
+    #         template_name='login.html',
+    #         redirect_authenticated_user=True
+    #     ),
+    #     name='login'
+    # ),
     path("main/", map_views.services_page_view, name="main_page"),    # path('catastrophes/', map_views.catastrophes_view, name='catastrophes'),#بدي احاول استنغي عنها
 
     path('after_login/', map_views.after_login_redirect, name='after_login_redirect'),

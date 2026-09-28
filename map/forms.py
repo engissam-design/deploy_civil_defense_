@@ -19,9 +19,23 @@ from django.contrib.auth.forms import AuthenticationForm
 
 from django import forms
 
+from django import forms
+from django.contrib.auth.forms import AuthenticationForm
+
+from django import forms
+from django.contrib.auth.forms import AuthenticationForm
+
+
+from django import forms
+from django.contrib.auth.forms import AuthenticationForm
+
+
 class LoginForm(AuthenticationForm):
     username = forms.CharField(
         label="الرقم الوظيفي",
+        error_messages={
+            "required": "Please enter your employee number.",
+        },
         widget=forms.TextInput(attrs={
             "class": "input-field",
             "placeholder": "الرقم الوظيفي",
@@ -32,6 +46,9 @@ class LoginForm(AuthenticationForm):
     password = forms.CharField(
         label="كلمة المرور",
         strip=False,
+        error_messages={
+            "required": "Please enter your password.",
+        },
         widget=forms.PasswordInput(attrs={
             "class": "input-field",
             "placeholder": "كلمة المرور",
@@ -39,9 +56,23 @@ class LoginForm(AuthenticationForm):
     )
 
     error_messages = {
-        "invalid_login": "الرقم الوظيفي أو كلمة المرور غير صحيحة",
-        "inactive": "هذا الحساب غير مفعّل",
+        **AuthenticationForm.error_messages,
+        "invalid_login": "Incorrect employee number or password.",
+        "inactive": "This account is inactive.",
     }
+
+    def get_invalid_login_error(self):
+        return forms.ValidationError(
+            "Incorrect employee number or password.",
+            code="invalid_login",
+        )
+
+    def confirm_login_allowed(self, user):
+        if not user.is_active:
+            raise forms.ValidationError(
+                "This account is inactive.",
+                code="inactive",
+            )
 
 class SearchForm(forms.ModelForm):
     address = forms.CharField(label='')
