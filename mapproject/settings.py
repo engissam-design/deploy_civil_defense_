@@ -202,3 +202,4 @@ CSRF_TRUSTED_ORIGINS = [
 ]
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+SECURE_REFERRER_POLICY = "strict-origin-when-cross-origin"
